@@ -6,6 +6,7 @@
             [clojure.string :as string]
             [mescal.agave-de-v2.app-listings :as app-listings]
             [mescal.agave-de-v2.job-params :as params]
+            [mescal.agave-de-v2.constants :as c]
             [mescal.util :as util]))
 
 (def ^:private timestamp-formatter
@@ -98,6 +99,7 @@
    :app_name        app-name
    :description     ""
    :enddate         (or (util/to-utc (:endTime job)) "")
+   :system_id       c/hpc-system-id
    :name            (:name job)
    :raw_status      (:status job)
    :resultfolderid  (get-result-folder-id agave job)
