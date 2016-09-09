@@ -14,4 +14,7 @@
                  [org.cyverse/authy "2.8.0"]
                  [org.cyverse/clojure-commons "2.8.0"]
                  [org.cyverse/service-logging "2.8.0"]
-                 [slingshot "0.10.3"]])
+                 [slingshot "0.10.3"]]
+  :eastwood {:exclude-namespaces [:test-paths]
+             :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
+  :plugins [[jonase/eastwood "0.2.3"]])

@@ -28,6 +28,7 @@
      :can_run              true
      :deleted              false
      :disabled             (not (and jobs-enabled? (= "UP" (statuses system))))
+     :system_id            c/hpc-system-id
      :integrator_email     c/unknown-value
      :integrator_name      c/unknown-value
      :is_favorite          false

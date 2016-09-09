@@ -107,7 +107,8 @@
         :description      (:shortDescription app)
         :integration_date mod-time
         :edited_date      mod-time
-        :app_type         c/hpc-app-type}))
+        :app_type         c/hpc-app-type
+        :system_id        c/hpc-system-id}))
   ([agave app]
      (format-app agave app format-groups)))
 
@@ -144,6 +145,7 @@
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
      :suggested_categories []
+     :system_id            c/hpc-system-id
      :wiki_url             (:helpURI app)}))
 
 (defn- add-file-info
@@ -163,6 +165,7 @@
     {:description (:shortDescription app)
      :id          (:id app)
      :name        (get-app-name app)
+     :system_id   c/hpc-system-id
      :tasks       [{:description (:shortDescription app)
                     :id          (:id app)
                     :inputs      inputs
