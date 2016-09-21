@@ -17,4 +17,5 @@
                  [slingshot "0.10.3"]]
   :eastwood {:exclude-namespaces [:test-paths]
              :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
-  :plugins [[jonase/eastwood "0.2.3"]])
+  :plugins [[jonase/eastwood "0.2.3"]
+            [test2junit "1.2.2"]])

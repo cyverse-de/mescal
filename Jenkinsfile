@@ -1,5 +1,5 @@
 #!groovy
-node {
+node('docker') {
     slackJobDescription = "job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
     try {
         stage "Build"
@@ -10,10 +10,17 @@ node {
         sh "docker build --rm -t ${dockerRepo} ."
 
         dockerTestRunner = "test-${env.BUILD_TAG}"
+        dockerTestCleanup = "test-cleanup-${env.BUILD_TAG}"
         dockerDeployer = "deploy-${env.BUILD_TAG}"
         try {
             stage "Test"
-                sh "docker run --name ${dockerTestRunner} --rm ${dockerRepo}"
+            try {
+                sh "docker run --rm --name ${dockerTestRunner} -v \$(pwd)/test2junit:/usr/src/app/test2junit ${dockerRepo}"
+            } finally {
+                junit 'test2junit/xml/*.xml'
+
+                sh "docker run --rm --name ${dockerTestCleanup} -v \$(pwd):/build -w /build alpine rm -r test2junit"
+            }
 
             stage "Deploy"
             withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'jenkins-clojars-credentials', usernameVariable: 'LEIN_USERNAME', passwordVariable: 'LEIN_PASSWORD']]) {
@@ -22,15 +29,16 @@ node {
         } finally {
             sh returnStatus: true, script: "docker kill ${dockerTestRunner}"
             sh returnStatus: true, script: "docker rm ${dockerTestRunner}"
+
+            sh returnStatus: true, script: "docker kill ${dockerTestCleanup}"
+            sh returnStatus: true, script: "docker rm ${dockerTestCleanup}"
+
             sh returnStatus: true, script: "docker kill ${dockerDeployer}"
             sh returnStatus: true, script: "docker rm ${dockerDeployer}"
+
             sh returnStatus: true, script: "docker rmi ${dockerRepo}"
         }
     } catch (InterruptedException e) {
-        currentBuild.result = "ABORTED"
-        slackSend color: 'warning', message: "ABORTED: ${slackJobDescription}"
-        throw e
-    } catch (hudson.AbortException e) {
         currentBuild.result = "ABORTED"
         slackSend color: 'warning', message: "ABORTED: ${slackJobDescription}"
         throw e
