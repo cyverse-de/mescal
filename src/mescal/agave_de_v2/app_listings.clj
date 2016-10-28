@@ -7,7 +7,7 @@
   {:id           c/hpc-group-id
    :is_public    true
    :name         c/hpc-group-name
-   :app_count    -1})
+   :total        -1})
 
 (defn get-app-name
   [app]
@@ -42,8 +42,8 @@
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]
   (assoc (hpc-app-group)
-    :apps      (map (partial format-app-listing statuses jobs-enabled?) listing)
-    :app_count (count listing)))
+    :apps  (map (partial format-app-listing statuses jobs-enabled?) listing)
+    :total (count listing)))
 
 (defn list-apps
   ([agave statuses jobs-enabled?]
