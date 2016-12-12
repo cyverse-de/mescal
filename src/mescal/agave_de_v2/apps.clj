@@ -167,6 +167,7 @@
      :name        (get-app-name app)
      :system_id   c/hpc-system-id
      :tasks       [{:description (:shortDescription app)
+                    :system_id   c/hpc-system-id
                     :id          (:id app)
                     :inputs      inputs
                     :name        app-name
