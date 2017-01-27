@@ -13,6 +13,7 @@
   (listAppTasks [_ app-id])
   (getAppToolListing [_ app-id])
   (getAppInputIds [_ app-id])
+  (hasAppPermission [_ username app-id required-level])
   (listAppPermissions [_ app-ids])
   (submitJob [_ submission])
   (prepareJobSubmission [_ submission])
@@ -49,6 +50,8 @@
     (v2/get-app-tool-listing agave app-id))
   (getAppInputIds [_ app-id]
     (v2/get-app-input-ids agave app-id))
+  (hasAppPermission [_ username app-id required-level]
+    (v2/has-app-permission agave username app-id required-level))
   (listAppPermissions [_ app-ids]
     (v2/list-app-permissions agave app-ids))
   (submitJob [this submission]
