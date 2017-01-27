@@ -9,6 +9,7 @@
   (listApps [_] [_ app-ids])
   (listAppsWithOntology [_ term])
   (getApp [_ app-id])
+  (listAppPermissions [_ app-ids])
   (submitJob [_ submission])
   (listJobs [_] [_ job-ids])
   (listJob [_ job-id])
@@ -44,6 +45,9 @@
   (getApp [_ app-id]
     (v2/check-access-token token-info-fn timeout)
     (v2/get-app base-url token-info-fn timeout app-id))
+  (listAppPermissions [_ app-id]
+    (v2/check-access-token token-info-fn timeout)
+    (v2/list-app-permissions base-url token-info-fn timeout app-id))
   (submitJob [_ submission]
     (v2/check-access-token token-info-fn timeout)
     (v2/submit-job base-url token-info-fn timeout submission))

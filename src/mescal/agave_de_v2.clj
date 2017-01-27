@@ -59,6 +59,10 @@
   [agave app-id]
   (mapv :id (:inputs (.getApp agave app-id))))
 
+(defn list-app-permissions
+  [agave app-ids]
+  (map #(apps/format-app-permissions % (.listAppPermissions agave %)) app-ids))
+
 (defn prepare-job-submission
   [agave submission]
   (jobs/prepare-submission agave (.getApp agave (:app_id submission)) submission))
