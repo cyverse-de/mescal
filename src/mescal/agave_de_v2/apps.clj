@@ -212,6 +212,15 @@
                                  :else ""))))
 
 (defn format-app-permissions
+  "Formats an Agave app permissions response for use in the DE."
   [app-id permissions]
   {:id app-id
    :permissions (map format-app-permission permissions)})
+
+(defn format-update-permission
+  "Formats a DE permission level for updating in Agave."
+  [level]
+  (when level
+    (if (= level "read")
+      "read_execute"
+      "all")))

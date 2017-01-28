@@ -81,6 +81,10 @@
       ;; app is public
       (= required-level "read"))))
 
+(defn share-app-with-user
+  [agave username app-id level]
+  (.shareAppWithUser agave app-id username (apps/format-update-permission level)))
+
 (defn prepare-job-submission
   [agave submission]
   (jobs/prepare-submission agave (.getApp agave (:app_id submission)) submission))

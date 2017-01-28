@@ -15,6 +15,7 @@
   (getAppInputIds [_ app-id])
   (hasAppPermission [_ username app-id required-level])
   (listAppPermissions [_ app-ids])
+  (shareAppWithUser [_ username app-id level])
   (submitJob [_ submission])
   (prepareJobSubmission [_ submission])
   (sendJobSubmission [_ submission])
@@ -54,6 +55,8 @@
     (v2/has-app-permission agave username app-id required-level))
   (listAppPermissions [_ app-ids]
     (v2/list-app-permissions agave app-ids))
+  (shareAppWithUser [_ username app-id level]
+    (v2/share-app-with-user agave username app-id level))
   (submitJob [this submission]
     (->> (.prepareJobSubmission this submission)
          (.sendJobSubmission this)))
