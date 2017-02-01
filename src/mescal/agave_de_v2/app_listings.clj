@@ -4,7 +4,8 @@
 
 (defn hpc-app-group
   []
-  {:id           c/hpc-group-id
+  {:system_id    c/hpc-system-id
+   :id           c/hpc-group-id
    :is_public    true
    :name         c/hpc-group-name
    :total        -1})
