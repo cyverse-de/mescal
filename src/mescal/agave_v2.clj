@@ -102,6 +102,18 @@
   [base-url token-info-fn timeout app-id]
   (agave-get token-info-fn timeout (curl/url base-url "/apps/v2" app-id)))
 
+(defn list-app-permissions
+  [base-url token-info-fn timeout app-id]
+  (agave-get token-info-fn timeout (curl/url base-url "/apps/v2" app-id "pems")))
+
+(defn get-app-permission
+  [base-url token-info-fn timeout app-id username]
+  (agave-get token-info-fn timeout (curl/url base-url "/apps/v2" app-id "pems" username)))
+
+(defn share-app-with-user
+  [base-url token-info-fn timeout app-id username level]
+  (agave-post token-info-fn timeout (curl/url base-url "/apps/v2" app-id "pems" username) {:permission level}))
+
 (defn submit-job
   [base-url token-info-fn timeout submission]
   (agave-post token-info-fn timeout (curl/url base-url "/jobs/v2/") submission))

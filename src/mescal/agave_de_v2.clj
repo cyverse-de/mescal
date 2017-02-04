@@ -1,4 +1,5 @@
 (ns mescal.agave-de-v2
+  (:use [slingshot.slingshot :only [try+]])
   (:require [mescal.agave-de-v2.apps :as apps]
             [mescal.agave-de-v2.app-listings :as app-listings]
             [mescal.agave-de-v2.job-params :as params]
@@ -58,6 +59,31 @@
 (defn get-app-input-ids
   [agave app-id]
   (mapv :id (:inputs (.getApp agave app-id))))
+
+(defn list-app-permissions
+  [agave app-ids]
+  (map #(apps/format-app-permissions % (.listAppPermissions agave %)) app-ids))
+
+(defn has-app-permission
+  [agave username app-id required-level]
+  (try+
+    (let [{:keys [write read execute]} (:permission (.getAppPermission agave app-id username))]
+      (case required-level
+        "own"     write
+        "write"   write
+        "read"    read
+        "execute" execute
+        false))
+    (catch [:status 404] _
+      ;; user has no app permissions
+      false)
+    (catch [:status 501] _
+      ;; app is public
+      (= required-level "read"))))
+
+(defn share-app-with-user
+  [agave username app-id level]
+  (.shareAppWithUser agave app-id username (apps/format-update-permission level)))
 
 (defn prepare-job-submission
   [agave submission]

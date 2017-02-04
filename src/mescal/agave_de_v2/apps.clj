@@ -1,8 +1,7 @@
 (ns mescal.agave-de-v2.apps
   (:use [medley.core :only [remove-vals]]
         [mescal.agave-de-v2.app-listings :only [get-app-name]])
-  (:require [clojure.string :as string]
-            [mescal.agave-de-v2.constants :as c]
+  (:require [mescal.agave-de-v2.constants :as c]
             [mescal.agave-de-v2.params :as mp]
             [mescal.util :as util]))
 
@@ -202,3 +201,26 @@
 (defn format-app-rerun-info
   [agave app job]
   (format-app agave app (partial format-groups-for-rerun agave job)))
+
+(defn- format-app-permission
+  [permission-map]
+  (-> permission-map
+      (select-keys [:username :permission])
+      (clojure.set/rename-keys {:username :user})
+      (update :permission #(cond (:write %) "own"
+                                 (:read %) "read"
+                                 :else ""))))
+
+(defn format-app-permissions
+  "Formats an Agave app permissions response for use in the DE."
+  [app-id permissions]
+  {:id app-id
+   :permissions (map format-app-permission permissions)})
+
+(defn format-update-permission
+  "Formats a DE permission level for updating in Agave."
+  [level]
+  (when level
+    (if (= level "read")
+      "read_execute"
+      "all")))
