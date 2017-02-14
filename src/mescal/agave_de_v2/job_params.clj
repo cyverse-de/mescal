@@ -1,5 +1,6 @@
 (ns mescal.agave-de-v2.job-params
-  (:require [mescal.agave-de-v2.params :as mp]
+  (:require [mescal.agave-de-v2.constants :as c]
+            [mescal.agave-de-v2.params :as mp]
             [mescal.util :as util]))
 
 (defn- format-param-value
@@ -57,6 +58,7 @@
   [agave job app-id app]
   (let [format-input (partial format-input-param-value agave (:inputs job))
         format-opt   (partial format-opt-param-value (:parameters job))]
-    {:app_id     app-id
+    {:system_id  c/hpc-system-id
+     :app_id     app-id
      :parameters (concat (mapv format-input (:inputs app))
                          (mapv format-opt   (:parameters app)))}))
