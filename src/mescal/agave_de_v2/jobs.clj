@@ -138,7 +138,8 @@
         app        (.getApp agave app-id)
         job-params (:parameters (params/format-params agave job app-id app))
         cfg-entry  (juxt (comp keyword :param_id) (comp :value :param_value))]
-    {:app_id               app-id
+    {:system_id            c/hpc-system-id
+     :app_id               app-id
      :name                 (:name job)
      :debug                false
      :notify               false
