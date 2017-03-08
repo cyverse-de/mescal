@@ -1,4 +1,5 @@
 #!groovy
+milestone 0
 node('docker') {
     slackJobDescription = "job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
     try {
