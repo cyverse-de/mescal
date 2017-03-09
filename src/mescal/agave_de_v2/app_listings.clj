@@ -20,7 +20,7 @@
         system   (:executionSystem listing)]
     {:id                   (:id listing)
      :name                 (get-app-name listing)
-     :description          (:shortDescription listing)
+     :description          (or (:shortDescription listing) "")
      :integration_date     mod-time
      :edited_date          mod-time
      :app_type             c/hpc-app-type
