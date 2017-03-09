@@ -103,7 +103,7 @@
         :label            app-label
         :id               (:id app)
         :name             app-label
-        :description      (:shortDescription app)
+        :description      (or (:shortDescription app) "")
         :integration_date mod-time
         :edited_date      mod-time
         :app_type         c/hpc-app-type
