@@ -6,6 +6,12 @@ node('docker') {
         stage "Build"
         checkout scm
 
+	repo = sh(returnStdout: true, script: 'grep "(defproject" project.clj | sed -E \'s%.defproject[^/]*/?([^ ]+) .*%\\1%\'').trim()
+	echo repo
+
+        descriptive_version = sh(returnStdout: true, script: 'git describe --long --tags --dirty --always').trim()
+        echo descriptive_version
+
         dockerRepo = "test-${env.BUILD_TAG}"
 
         sh "docker build --rm -t ${dockerRepo} ."
@@ -42,6 +48,12 @@ node('docker') {
             sh returnStatus: true, script: "docker rm ${dockerDeployer}"
 
             sh returnStatus: true, script: "docker rmi ${dockerRepo}"
+
+            step([$class: 'hudson.plugins.jira.JiraIssueUpdater',
+                    issueSelector: [$class: 'hudson.plugins.jira.selector.DefaultIssueSelector'],
+                    scm: scm,
+                    labels: [ "${repo}-${descriptive_version}" ]])
+
         }
     } catch (InterruptedException e) {
         currentBuild.result = "ABORTED"
