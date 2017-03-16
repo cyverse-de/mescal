@@ -9,7 +9,7 @@
                  [cheshire "5.5.0"]
                  [clj-http "2.0.0"]
                  [clj-time "0.7.0"]
-                 [com.cemerick/url "0.1.1"]
+                 [com.cemerick/url "0.1.1" :exclusions [com.cemerick/clojurescript.test]]
                  [medley "0.5.3"]
                  [org.cyverse/authy "2.8.0"]
                  [org.cyverse/clojure-commons "2.8.0"]
