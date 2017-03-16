@@ -1,4 +1,4 @@
-(defproject org.cyverse/mescal "2.8.5"
+(defproject org.cyverse/mescal "2.8.6-SNAPSHOT"
   :description "A Clojure client library for the Agave API."
   :url "https://github.com/cyverse-de/mescal"
   :license {:name "BSD Standard License"
