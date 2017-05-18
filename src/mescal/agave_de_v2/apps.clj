@@ -202,14 +202,16 @@
   [agave app job]
   (format-app agave app (partial format-groups-for-rerun agave job)))
 
+(defn- convert-permissions
+  [perms]
+  (cond (:write perms) "own"
+        (:read perms)  "read"
+        :else          ""))
+
 (defn- format-app-permission
-  [permission-map]
-  (-> permission-map
-      (select-keys [:username :permission])
-      (clojure.set/rename-keys {:username :user})
-      (update :permission #(cond (:write %) "own"
-                                 (:read %) "read"
-                                 :else ""))))
+  [{user :username perms :permission}]
+  {:subject    {:id user :source_id "ldap"}
+   :permission (convert-permissions perms)})
 
 (defn format-app-permissions
   "Formats an Agave app permissions response for use in the DE."
