@@ -47,10 +47,10 @@
     :total (count listing)))
 
 (defn list-apps
-  ([agave statuses jobs-enabled?]
-     (format-app-listing-response (.listApps agave) statuses jobs-enabled?))
-  ([agave statuses jobs-enabled? app-ids]
-     (format-app-listing-response (.listApps agave app-ids) statuses jobs-enabled?)))
+  ([agave statuses jobs-enabled? opts]
+     (format-app-listing-response (.listApps agave opts) statuses jobs-enabled?))
+  ([agave statuses jobs-enabled? app-ids opts]
+     (format-app-listing-response (.listApps agave app-ids opts) statuses jobs-enabled?)))
 
 (defn list-apps-with-ontology
   [agave statuses jobs-enabled? term]

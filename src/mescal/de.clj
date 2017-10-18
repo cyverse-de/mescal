@@ -5,9 +5,9 @@
 (defprotocol DeAgaveClient
   "An Agave client with customizations that are specific to the discovery environment."
   (hpcAppGroup [_])
-  (listApps [_] [_ app-ids])
+  (listApps [_] [_ opts] [_ app-ids opts])
   (listAppsWithOntology [_ term])
-  (searchApps [_ search-term])
+  (searchApps [_ search-term] [_ search-term opts])
   (getApp [_ app-id])
   (getAppDetails [_ app-id])
   (listAppTasks [_ app-id])
@@ -34,13 +34,17 @@
   (hpcAppGroup [_]
     (v2/hpc-app-group))
   (listApps [_]
-    (v2/list-apps agave jobs-enabled?))
-  (listApps [_ app-ids]
-    (v2/list-apps agave jobs-enabled? app-ids))
+    (v2/list-apps agave jobs-enabled? {}))
+  (listApps [_ opts]
+    (v2/list-apps agave jobs-enabled? opts))
+  (listApps [_ app-ids opts]
+    (v2/list-apps agave jobs-enabled? app-ids opts))
   (listAppsWithOntology [_ term]
     (v2/list-apps-with-ontology agave jobs-enabled? term))
-  (searchApps [_ search-term]
-    (v2/search-apps agave jobs-enabled? search-term))
+  (searchApps [this search-term]
+    (.searchApps this search-term {}))
+  (searchApps [_ search-term opts]
+    (v2/search-apps agave jobs-enabled? search-term opts))
   (getApp [_ app-id]
     (v2/get-app agave app-id))
   (getAppDetails [_ app-id]

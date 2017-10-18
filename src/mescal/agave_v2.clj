@@ -94,9 +94,18 @@
   [base-url token-info-fn timeout system-name]
   (agave-get token-info-fn timeout (curl/url base-url "/systems/v2/" system-name)))
 
+(defn- app-listing-params
+  [params]
+  (merge (select-keys params [:page-len :id.in])
+         (case (:app-subset params)
+           :public  {:publicOnly "true"}
+           :private {:privateOnly "true"}
+           {})))
+
 (defn list-apps
   [base-url token-info-fn timeout params]
-  (agave-get token-info-fn timeout (curl/url base-url "/apps/v2/") params))
+  (let [params (app-listing-params params)]
+    (agave-get token-info-fn timeout (curl/url base-url "/apps/v2/") params)))
 
 (defn get-app
   [base-url token-info-fn timeout app-id]

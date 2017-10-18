@@ -15,10 +15,10 @@
   (into {} (map (juxt :id :status) (.listSystems agave))))
 
 (defn list-apps
-  ([agave jobs-enabled?]
-     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled?))
-  ([agave jobs-enabled? app-ids]
-     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? app-ids)))
+  ([agave jobs-enabled? opts]
+     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? opts))
+  ([agave jobs-enabled? app-ids opts]
+     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? app-ids opts)))
 
 (defn list-apps-with-ontology
   [agave jobs-enabled? term]
@@ -30,13 +30,13 @@
         ((juxt :name :description) app)))
 
 (defn- find-matching-apps
-  [agave jobs-enabled? search-term]
+  [agave jobs-enabled? search-term opts]
   (filter (partial app-matches? search-term)
-          (:apps (list-apps agave jobs-enabled?))))
+          (:apps (list-apps agave jobs-enabled? opts))))
 
 (defn search-apps
-  [agave jobs-enabled? search-term]
-  (let [matching-apps (find-matching-apps agave jobs-enabled? search-term)]
+  [agave jobs-enabled? search-term opts]
+  (let [matching-apps (find-matching-apps agave jobs-enabled? search-term opts)]
     {:total (count matching-apps)
      :apps  matching-apps}))
 
