@@ -6,7 +6,7 @@
   "A client for the Agave API."
   (listSystems [_])
   (getSystemInfo [_ system-name])
-  (listApps [_] [_ app-ids])
+  (listApps [_] [_ opts] [_ app-ids opts])
   (listAppsWithOntology [_ term])
   (getApp [_ app-id])
   (getAppPermission [_ app-id username])
@@ -34,12 +34,15 @@
   (listApps [_]
     (v2/check-access-token token-info-fn timeout)
     (v2/list-apps base-url token-info-fn timeout {:page-len page-len}))
-  (listApps [_ app-ids]
+  (listApps [_ opts]
+    (v2/check-access-token token-info-fn timeout)
+    (v2/list-apps base-url token-info-fn timeout (merge opts {:page-len page-len})))
+  (listApps [_ app-ids opts]
     (v2/check-access-token token-info-fn timeout)
     (if (> (count app-ids) max-query-items)
-      (v2/list-apps base-url token-info-fn timeout {:page-len page-len})
-      (v2/list-apps base-url token-info-fn timeout {:page-len page-len
-                                                    :id.in    (string/join "," app-ids)})))
+      (v2/list-apps base-url token-info-fn timeout (merge opts {:page-len page-len}))
+      (v2/list-apps base-url token-info-fn timeout (merge opts {:page-len page-len
+                                                                :id.in    (string/join "," app-ids)}))))
   (listAppsWithOntology [_ term]
     (v2/check-access-token token-info-fn timeout)
     (v2/list-apps base-url token-info-fn timeout {:page-len      page-len
