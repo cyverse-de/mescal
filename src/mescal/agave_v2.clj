@@ -96,7 +96,7 @@
 
 (defn- app-listing-params
   [params]
-  (merge (select-keys params [:page-len :id.in])
+  (merge (select-keys params [:page-len :id.in :ontology.like])
          (case (:app-subset params)
            :public  {:publicOnly "true"}
            :private {:privateOnly "true"}

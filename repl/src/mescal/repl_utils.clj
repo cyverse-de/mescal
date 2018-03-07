@@ -20,7 +20,7 @@
   (cf/formatter "EEE MMM dd HH:mm:ss zzz yyyy"))
 
 (defn- parse-timestamp [timestamp]
-  (Timestamp. (.getMillis (cf/parse timestamp-formatter timestamp))))
+  (Timestamp. (.getMillis (cf/parse timestamp-formatter (string/replace timestamp #"  +" " ")))))
 
 (defn- get-server-info []
   (let [token-info  (json/decode (:out (string/replace (sh "auth-tokens-refresh" "-v") #"^[^\n]+\n" "")))
