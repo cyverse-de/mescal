@@ -1,4 +1,4 @@
-(defproject org.cyverse/mescal "3.0.2-SNAPSHOT"
+(defproject org.cyverse/mescal "3.0.3-SNAPSHOT"
   :description "A Clojure client library for the Agave API."
   :url "https://github.com/cyverse-de/mescal"
   :license {:name "BSD Standard License"
@@ -15,9 +15,9 @@
                  [org.cyverse/clojure-commons "2.8.0"]
                  [org.cyverse/service-logging "2.8.0"]
                  [slingshot "0.10.3"]]
-  :eastwood {:exclude-namespaces [:test-paths]
+  :eastwood {:exclude-namespaces [mescal.de :test-paths]
              :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
   :profiles {:repl {:source-paths ["src" "repl/src"]
                     :resource-paths ["repl/resources"]}}
-  :plugins [[jonase/eastwood "0.2.3"]
+  :plugins [[jonase/eastwood "0.2.6"]
             [test2junit "1.2.2"]])
