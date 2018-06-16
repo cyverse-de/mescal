@@ -18,7 +18,13 @@
   ([agave jobs-enabled? opts]
      (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? opts))
   ([agave jobs-enabled? app-ids opts]
-     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? app-ids opts)))
+   (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? app-ids opts)))
+
+(defn empty-app-listing
+  []
+  (assoc (app-listings/hpc-app-group)
+    :apps  []
+    :total 0))
 
 (defn list-apps-with-ontology
   [agave jobs-enabled? term]
