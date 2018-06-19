@@ -14,13 +14,17 @@
   [app]
   (str (or (:label app) (:name app)) " " (:version app)))
 
+(defn get-app-description
+  [app]
+  (or (:shortDescription app) "[no description provided]"))
+
 (defn- format-app-listing
   [statuses jobs-enabled? listing]
   (let [mod-time (util/to-utc (:lastModified listing))
         system   (:executionSystem listing)]
     {:id                   (:id listing)
      :name                 (get-app-name listing)
-     :description          (or (:shortDescription listing) "")
+     :description          (get-app-description listing)
      :integration_date     mod-time
      :edited_date          mod-time
      :app_type             c/hpc-app-type
@@ -33,12 +37,13 @@
      :integrator_email     c/unknown-value
      :integrator_name      c/unknown-value
      :is_favorite          false
-     :is_public            (:isPublic listing)
+     :is_public            (boolean (:isPublic listing))
      :pipeline_eligibility {:is_valid true :reason ""}
      :rating               {:average 0.0 :total 0}
      :step_count           1
      :permission           "read"
-     :wiki_url             ""}))
+     :wiki_url             ""
+     :owner                (:owner listing)}))
 
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]
