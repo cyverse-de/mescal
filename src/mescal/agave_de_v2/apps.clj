@@ -145,7 +145,8 @@
      :categories           [c/hpc-group-overview]
      :suggested_categories []
      :system_id            c/hpc-system-id
-     :wiki_url             (:helpURI app)}))
+     :wiki_url             (:helpURI app)
+     :owner                (:owner app)}))
 
 (defn- add-file-info
   [prop]
