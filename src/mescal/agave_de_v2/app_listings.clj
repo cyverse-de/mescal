@@ -38,7 +38,8 @@
      :rating               {:average 0.0 :total 0}
      :step_count           1
      :permission           "read"
-     :wiki_url             ""}))
+     :wiki_url             ""
+     :owner                (:owner listing)}))
 
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]

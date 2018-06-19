@@ -94,9 +94,13 @@
   [base-url token-info-fn timeout system-name]
   (agave-get token-info-fn timeout (curl/url base-url "/systems/v2/" system-name)))
 
+(def ^:private app-listing-fields
+  ["id" "label" "name" "version" "lastModified" "executionSystem" "shortDescription" "isPublic" "owner"])
+
 (defn- app-listing-params
   [params]
   (merge (select-keys params [:page-len :id.in :ontology.like])
+         {:filter (string/join "," app-listing-fields)}
          (case (:app-subset params)
            :public  {:publicOnly "true"}
            :private {:privateOnly "true"}
