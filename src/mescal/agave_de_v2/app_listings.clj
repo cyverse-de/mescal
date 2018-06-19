@@ -20,7 +20,7 @@
         system   (:executionSystem listing)]
     {:id                   (:id listing)
      :name                 (get-app-name listing)
-     :description          (or (:shortDescription listing) "")
+     :description          (or (:shortDescription listing) "[no description provided]")
      :integration_date     mod-time
      :edited_date          mod-time
      :app_type             c/hpc-app-type
@@ -33,7 +33,7 @@
      :integrator_email     c/unknown-value
      :integrator_name      c/unknown-value
      :is_favorite          false
-     :is_public            (:isPublic listing)
+     :is_public            (boolean (:isPublic listing))
      :pipeline_eligibility {:is_valid true :reason ""}
      :rating               {:average 0.0 :total 0}
      :step_count           1
