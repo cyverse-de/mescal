@@ -1,6 +1,6 @@
 (ns mescal.agave-de-v2.apps
   (:use [medley.core :only [remove-vals]]
-        [mescal.agave-de-v2.app-listings :only [get-app-name]])
+        [mescal.agave-de-v2.app-listings :only [get-app-name get-app-description]])
   (:require [mescal.agave-de-v2.constants :as c]
             [mescal.agave-de-v2.params :as mp]
             [mescal.util :as util]))
@@ -103,7 +103,7 @@
         :label            app-label
         :id               (:id app)
         :name             app-label
-        :description      (or (:shortDescription app) "")
+        :description      (get-app-description app)
         :integration_date mod-time
         :edited_date      mod-time
         :app_type         c/hpc-app-type
@@ -138,7 +138,7 @@
      :id                   (:id app)
      :name                 (get-app-name app)
      :references           []
-     :description          (:shortDescription app)
+     :description          (get-app-description app)
      :deleted              false
      :disabled             (system-available? agave (:executionSystem app))
      :tools                [(format-tool-for-app app)]

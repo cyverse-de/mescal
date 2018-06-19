@@ -14,13 +14,17 @@
   [app]
   (str (or (:label app) (:name app)) " " (:version app)))
 
+(defn get-app-description
+  [app]
+  (or (:shortDescription app) "[no description provided]"))
+
 (defn- format-app-listing
   [statuses jobs-enabled? listing]
   (let [mod-time (util/to-utc (:lastModified listing))
         system   (:executionSystem listing)]
     {:id                   (:id listing)
      :name                 (get-app-name listing)
-     :description          (or (:shortDescription listing) "[no description provided]")
+     :description          (get-app-description listing)
      :integration_date     mod-time
      :edited_date          mod-time
      :app_type             c/hpc-app-type
