@@ -73,7 +73,7 @@
          :name           (build-job-name submission)
          :appId          (:app_id submission)
          :appName        (app-listings/get-app-name app)
-         :appDescription (:shortDescription app "")
+         :appDescription (app-listings/get-app-description app)
          :archive        true
          :archivePath    (.agaveFilePath agave (:output_dir submission))
          :archiveSystem  (.storageSystem agave)
@@ -113,7 +113,7 @@
        (format-job* agave
                     app-id
                     (app-listings/get-app-name app-info)
-                    (:shortDescription app-info "")
+                    (app-listings/get-app-description app-info)
                     job)))
   ([agave jobs-enabled? statuses app-info-map {app-id :appId :as job}]
      (let [app-info (app-info-map app-id {})]

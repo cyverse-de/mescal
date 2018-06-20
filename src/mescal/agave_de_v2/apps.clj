@@ -121,7 +121,7 @@
 (defn format-tool-for-app
   [{path :deploymentPath :as app}]
   {:attribution ""
-   :description (:shortDescription app)
+   :description (get-app-description app)
    :id          (:id app)
    :location    path
    :name        (:id app)
@@ -162,11 +162,11 @@
         format-io-field (comp select-io-keys add-file-info)
         inputs          (map (comp format-io-field (input-param-formatter)) (:inputs app))
         outputs         (map (comp format-io-field (output-param-formatter)) (:outputs app))]
-    {:description (:shortDescription app)
+    {:description (get-app-description app)
      :id          (:id app)
      :name        (get-app-name app)
      :system_id   c/hpc-system-id
-     :tasks       [{:description (:shortDescription app)
+     :tasks       [{:description (get-app-description app)
                     :system_id   c/hpc-system-id
                     :id          (:id app)
                     :inputs      inputs
