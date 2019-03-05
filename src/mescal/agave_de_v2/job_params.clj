@@ -1,5 +1,6 @@
 (ns mescal.agave-de-v2.job-params
-  (:require [mescal.agave-de-v2.constants :as c]
+  (:require [clojure.string :as string]
+            [mescal.agave-de-v2.constants :as c]
             [mescal.agave-de-v2.params :as mp]
             [mescal.util :as util]))
 
@@ -36,10 +37,17 @@
         (mp/format-enum-element default (mp/find-enum-element param-value enum-values)))
       param-value)))
 
+(defn- get-default-input-value-fn
+  [agave param]
+  (fn []
+    (let [default-value (get-default-param-value param)]
+      (when-not (string/blank? default-value)
+        {:path default-value}))))
+
 (defn- format-input-param-value
   [agave param-values param]
   (format-param-value #(.irodsFilePath agave (get-param-value param-values param))
-                      #(.irodsFilePath agave (get-default-param-value param))
+                      (get-default-input-value-fn agave param)
                       (constantly "FileFolderInput")
                       (constantly "Unspecified")
                       (constantly "File")
