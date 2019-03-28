@@ -33,6 +33,12 @@
     (->> (tf/parse (:date-time tf/formatters) timestamp)
          (tf/unparse (:date-time tf/formatters)))))
 
+(defn to-millis
+  "Converts a formatted timestamp to milliseconds since the epoch."
+  [timestamp]
+  (when-not (nil? timestamp)
+    (.getMillis (tf/parse (:date-time tf/formatters) timestamp))))
+
 (defn get-boolean
   [value default]
   (cond (nil? value)    default

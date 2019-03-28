@@ -145,6 +145,10 @@
   [base-url token-info-fn timeout job-id]
   (agave-post token-info-fn timeout (curl/url base-url "/jobs/v2" job-id) {:action "stop"}))
 
+(defn get-job-history
+  [base-url token-info-fn timeout job-id]
+  (agave-get token-info-fn timeout (curl/url base-url "/jobs/v2" job-id "history")))
+
 (def ^:private root-dir-for
   (memoize (fn [base-url token-info-fn timeout storage-system]
              ((comp :rootDir :storage)

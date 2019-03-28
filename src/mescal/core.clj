@@ -16,6 +16,7 @@
   (listJobs [_] [_ job-ids])
   (listJob [_ job-id])
   (stopJob [_ job-id])
+  (getJobHistory [_ job-id])
   (fileDownloadUrl [_ file-path])
   (fileListingUrl [_ file-path])
   (agaveUrl [_ file-path])
@@ -74,6 +75,9 @@
   (stopJob [_ job-id]
     (v2/check-access-token token-info-fn timeout)
     (v2/stop-job base-url token-info-fn timeout job-id))
+  (getJobHistory [_ job-id]
+    (v2/check-access-token token-info-fn timeout)
+    (v2/get-job-history base-url token-info-fn timeout job-id))
   (fileDownloadUrl [_ file-path]
     (v2/check-access-token token-info-fn timeout)
     (v2/file-path-to-url "media" base-url token-info-fn timeout storage-system file-path))
