@@ -120,6 +120,13 @@
        (assoc (format-job agave jobs-enabled? app-info-map job)
          :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
 
+(defn format-job-history
+  [job-status-updates]
+  (for [update job-status-updates]
+    {:status    (:status update)
+     :message   (:description update)
+     :timestamp (util/to-utc (:created update))}))
+
 (defn format-job-submisison-response
   [agave submission job]
   (format-job* agave

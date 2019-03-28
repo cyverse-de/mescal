@@ -119,6 +119,10 @@
         app-info (apps/load-app-info agave [(:appId job)])]
     (jobs/format-job agave jobs-enabled? statuses app-info job)))
 
+(defn get-job-history
+  [agave job-id]
+  (jobs/format-job-history (.getJobHistory agave job-id)))
+
 (defn get-job-params
   [agave job-id]
   (when-let [job (.listJob agave job-id)]

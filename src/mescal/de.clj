@@ -24,6 +24,7 @@
   (listJob [_ job-id])
   (listJobIds [_])
   (stopJob [_ job-id])
+  (getJobHistory [_ job-id])
   (getJobParams [_ job-id])
   (getAppRerunInfo [_ job-id])
   (translateJobStatus [_ status])
@@ -81,6 +82,8 @@
     (mapv :id (.listJobs agave)))
   (stopJob [_ job-id]
     (.stopJob agave job-id))
+  (getJobHistory [_ job-id]
+    (v2/get-job-history agave job-id))
   (getJobParams [_ job-id]
     (v2/get-job-params agave job-id))
   (getAppRerunInfo [_ job-id]
