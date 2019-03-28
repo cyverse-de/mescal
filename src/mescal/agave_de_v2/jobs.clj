@@ -125,7 +125,7 @@
   (for [update job-status-updates]
     {:status    (:status update)
      :message   (:description update)
-     :timestamp (util/to-utc (:created update))}))
+     :timestamp (str (util/to-millis (:created update)))}))
 
 (defn format-job-submisison-response
   [agave submission job]
