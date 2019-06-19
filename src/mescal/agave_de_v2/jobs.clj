@@ -72,8 +72,6 @@
   (->> (assoc (prepare-params agave app (:paramPrefix submission) (:config submission))
          :name           (build-job-name submission)
          :appId          (:app_id submission)
-         :appName        (app-listings/get-app-name app)
-         :appDescription (app-listings/get-app-description app)
          :archive        true
          :archivePath    (.agaveFilePath agave (:output_dir submission))
          :archiveSystem  (.storageSystem agave)
