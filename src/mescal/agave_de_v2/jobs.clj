@@ -39,7 +39,8 @@
 (def ^:private completed "Completed")
 
 (def ^:private job-status-translations
-  {"PENDING"            submitted
+  {"ACCEPTED"           submitted
+   "PENDING"            submitted
    "STAGING_INPUTS"     submitted
    "CLEANING_UP"        running
    "ARCHIVING"          running
@@ -50,6 +51,7 @@
    "STOPPED"            failed
    "RUNNING"            running
    "PAUSED"             running
+   "BLOCKED"            running
    "QUEUED"             submitted
    "SUBMITTING"         submitted
    "STAGED"             submitted
