@@ -176,7 +176,7 @@
   [url-type base-url token-info-fn timeout storage-system file-path]
   (when-not (string/blank? file-path)
     (let [root-dir (get-root-dir base-url token-info-fn timeout storage-system)
-          url-path (string/replace file-path (re-pattern (str "\\Q" root-dir "/")) "")]
+          url-path (util/encode-path root-dir file-path)]
       (str (curl/url base-url "/files/v2" url-type "system" storage-system url-path)))))
 
 (defn- build-path
@@ -188,7 +188,7 @@
   [base-url token-info-fn timeout storage-system file-path]
   (when-not (string/blank? file-path)
     (let [root-dir (get-root-dir base-url token-info-fn timeout storage-system)
-          url-path (string/replace file-path (re-pattern (str "\\Q" root-dir "/")) "")]
+          url-path (util/encode-path root-dir file-path)]
       (build-path (str "agave://" storage-system) url-path))))
 
 (defn- files-base
