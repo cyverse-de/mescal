@@ -211,16 +211,16 @@
   (when-not (string/blank? file-url)
     (if-let [storage-system (extract-storage-system base-url file-url)]
       (build-path (get-root-dir base-url token-info-fn timeout storage-system)
-                  (string/replace file-url (files-base-regex base-url storage-system) ""))
+                  (curl/url-decode (string/replace file-url (files-base-regex base-url storage-system) "")))
       (build-path (get-default-root-dir base-url token-info-fn timeout page-len)
-                  (string/replace file-url (files-base-regex base-url) "")))))
+                  (curl/url-decode (string/replace file-url (files-base-regex base-url) ""))))))
 
 (defn- agave-url-to-path
   [base-url token-info-fn timeout file-url]
   (when-not (string/blank? file-url)
     (when-let [storage-system (second (re-find #"agave://([^/]+)" file-url))]
       (build-path (get-root-dir base-url token-info-fn timeout storage-system)
-                  (string/replace file-url #"agave://[^/]+" "")))))
+                  (curl/url-decode (string/replace file-url #"agave://[^/]+" ""))))))
 
 (defn- http-url?
   [url]
