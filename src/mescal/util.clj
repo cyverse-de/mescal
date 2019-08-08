@@ -2,8 +2,10 @@
   (:use [clojure.java.io :only [reader]]
         [medley.core :only [find-first]]
         [slingshot.slingshot :only [throw+]])
-  (:require [cheshire.core :as cheshire]
+  (:require [cemerick.url :as curl]
+            [cheshire.core :as cheshire]
             [clj-time.format :as tf]
+            [clojure.string :as string]
             [clojure.tools.logging :as log]
             [clojure-commons.error-codes :as ce]))
 
@@ -55,3 +57,12 @@
 (defn get-enum-values
   [value-obj]
   (find-value value-obj [:enumValues :enum_values]))
+
+(defn encode-path
+  "Encodes a file path for use in a URL."
+  [root-dir file-path]
+  (as-> file-path path
+    (string/replace path (re-pattern (str "\\Q" root-dir "/")) "")
+    (string/split path #"/")
+    (map curl/url-encode path)
+    (string/join "/" path)))
