@@ -16,7 +16,7 @@
 
 (defn list-apps
   ([agave jobs-enabled? opts]
-     (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? opts))
+   (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? opts))
   ([agave jobs-enabled? app-ids opts]
    (app-listings/list-apps agave (get-system-statuses agave) jobs-enabled? app-ids opts)))
 
@@ -73,19 +73,19 @@
 (defn has-app-permission
   [agave username app-id required-level]
   (try+
-    (let [{:keys [write read execute]} (:permission (.getAppPermission agave app-id username))]
-      (case required-level
-        "own"     write
-        "write"   write
-        "read"    read
-        "execute" execute
-        false))
-    (catch [:status 404] _
-      ;; user has no app permissions
-      false)
-    (catch [:status 501] _
-      ;; app is public
-      (= required-level "read"))))
+   (let [{:keys [write read execute]} (:permission (.getAppPermission agave app-id username))]
+     (case required-level
+       "own"     write
+       "write"   write
+       "read"    read
+       "execute" execute
+       false))
+   (catch [:status 404] _
+     ;; user has no app permissions
+     false)
+   (catch [:status 501] _
+     ;; app is public
+     (= required-level "read"))))
 
 (defn share-app-with-user
   [agave username app-id level]
@@ -108,9 +108,9 @@
 
 (defn list-jobs
   ([agave jobs-enabled?]
-     (format-jobs agave jobs-enabled? (.listJobs agave)))
+   (format-jobs agave jobs-enabled? (.listJobs agave)))
   ([agave jobs-enabled? job-ids]
-     (format-jobs agave jobs-enabled? (.listJobs agave job-ids))))
+   (format-jobs agave jobs-enabled? (.listJobs agave job-ids))))
 
 (defn list-job
   [agave jobs-enabled? job-id]

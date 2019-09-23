@@ -34,34 +34,34 @@
 
 (defn get-test-agave-client
   ([]
-     (get-test-agave-client {}))
+   (get-test-agave-client {}))
   ([agave-params]
-     (get-test-agave-client agave-params (get-username)))
+   (get-test-agave-client agave-params (get-username)))
   ([agave-params username]
-     (get-test-agave-client agave-params username (get-password)))
+   (get-test-agave-client agave-params username (get-password)))
   ([agave-params username password]
-     (get-test-agave-client agave-params username password (get-api-key) (get-api-secret)))
+   (get-test-agave-client agave-params username password (get-api-key) (get-api-secret)))
   ([agave-params username password api-key api-secret]
-     (let [base-url       (get-agave-base-url)
-           storage-system (get-agave-storage-system)
-           token-info     (get-token base-url api-key api-secret username password)
-           agave-params   (flatten (seq agave-params))]
-       (apply mc/agave-client-v2 base-url storage-system (constantly token-info) agave-params))))
+   (let [base-url       (get-agave-base-url)
+         storage-system (get-agave-storage-system)
+         token-info     (get-token base-url api-key api-secret username password)
+         agave-params   (flatten (seq agave-params))]
+     (apply mc/agave-client-v2 base-url storage-system (constantly token-info) agave-params))))
 
 (defn get-test-de-agave-client
   ([]
-     (get-test-de-agave-client {}))
+   (get-test-de-agave-client {}))
   ([agave-params]
-     (get-test-de-agave-client agave-params true))
+   (get-test-de-agave-client agave-params true))
   ([agave-params jobs-enabled?]
-     (get-test-de-agave-client agave-params jobs-enabled? (get-username)))
+   (get-test-de-agave-client agave-params jobs-enabled? (get-username)))
   ([agave-params jobs-enabled? username]
-     (get-test-de-agave-client agave-params jobs-enabled? username (get-password)))
+   (get-test-de-agave-client agave-params jobs-enabled? username (get-password)))
   ([agave-params jobs-enabled? username password]
-     (get-test-de-agave-client agave-params jobs-enabled? username password (get-api-key) (get-api-secret)))
+   (get-test-de-agave-client agave-params jobs-enabled? username password (get-api-key) (get-api-secret)))
   ([agave-params jobs-enabled? username password api-key api-secret]
-     (let [base-url       (get-agave-base-url)
-           storage-system (get-agave-storage-system)
-           token-info     (get-token base-url api-key api-secret username password)
-           agave-params   (flatten (seq agave-params))]
-       (apply md/de-agave-client-v2 base-url storage-system (constantly token-info) jobs-enabled? agave-params))))
+   (let [base-url       (get-agave-base-url)
+         storage-system (get-agave-storage-system)
+         token-info     (get-token base-url api-key api-secret username password)
+         agave-params   (flatten (seq agave-params))]
+     (apply md/de-agave-client-v2 base-url storage-system (constantly token-info) jobs-enabled? agave-params))))

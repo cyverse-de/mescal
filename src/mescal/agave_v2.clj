@@ -11,7 +11,7 @@
             [mescal.util :as util])
   (:import [java.io IOException]))
 
-; FIXME Update apps service exception handling when this exception handling is updated
+;; FIXME Update apps service exception handling when this exception handling is updated
 (defn- agave-unavailable
   [e]
   (let [msg "Agave appears to be unavailable at this time"]
@@ -133,9 +133,9 @@
 
 (defn list-jobs
   ([base-url token-info-fn timeout page-len]
-     (agave-get token-info-fn timeout (curl/url base-url "/jobs/v2/") {:page-len page-len}))
+   (agave-get token-info-fn timeout (curl/url base-url "/jobs/v2/") {:page-len page-len}))
   ([base-url token-info-fn timeout page-len job-ids]
-     (filter (comp (set job-ids) :id) (list-jobs base-url token-info-fn timeout page-len))))
+   (filter (comp (set job-ids) :id) (list-jobs base-url token-info-fn timeout page-len))))
 
 (defn list-job
   [base-url token-info-fn timeout job-id]
@@ -197,9 +197,9 @@
 
 (defn- files-base-regex
   ([base-url]
-     (re-pattern (str "\\Q" (files-base base-url) "\\E/[^/]+")))
+   (re-pattern (str "\\Q" (files-base base-url) "\\E/[^/]+")))
   ([base-url system-id]
-     (re-pattern (str "\\Q" (files-base base-url) "\\E/[^/]+/system/\\Q" system-id))))
+   (re-pattern (str "\\Q" (files-base base-url) "\\E/[^/]+/system/\\Q" system-id))))
 
 (defn- extract-storage-system
   [base-url file-url]
@@ -234,10 +234,10 @@
   [base-url token-info-fn timeout page-len storage-system file-url]
   (when-not (string/blank? file-url)
     (cond
-     (http-url? file-url)  (file-url-to-path base-url token-info-fn timeout page-len file-url)
-     (agave-url? file-url) (agave-url-to-path base-url token-info-fn timeout file-url)
-     :else                 (-> (get-root-dir base-url token-info-fn timeout storage-system)
-                               (build-path file-url)))))
+      (http-url? file-url)  (file-url-to-path base-url token-info-fn timeout page-len file-url)
+      (agave-url? file-url) (agave-url-to-path base-url token-info-fn timeout file-url)
+      :else                 (-> (get-root-dir base-url token-info-fn timeout storage-system)
+                                (build-path file-url)))))
 
 (defn irods-to-agave-path
   [base-url token-info-fn timeout storage-system irods-path]

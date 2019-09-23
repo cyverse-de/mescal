@@ -20,13 +20,13 @@
 
 (defn- params-for
   ([config param-prefix app-section]
-     (params-for config param-prefix app-section identity))
+   (params-for config param-prefix app-section identity))
   ([config param-prefix app-section preprocessing-fn]
-     (let [get-param-val (comp preprocessing-fn config (partial add-param-prefix param-prefix))]
-       (->> (map (comp keyword :id) app-section)
-            (map (juxt identity get-param-val))
-            (into {})
-            (remove-vals nil?)))))
+   (let [get-param-val (comp preprocessing-fn config (partial add-param-prefix param-prefix))]
+     (->> (map (comp keyword :id) app-section)
+          (map (juxt identity get-param-val))
+          (into {})
+          (remove-vals nil?)))))
 
 (defn- prepare-params
   [agave app param-prefix config]
@@ -109,16 +109,16 @@
 
 (defn format-job
   ([agave jobs-enabled? app-info-map {app-id :appId :as job}]
-     (let [app-info (app-info-map app-id {})]
-       (format-job* agave
-                    app-id
-                    (app-listings/get-app-name app-info)
-                    (app-listings/get-app-description app-info)
-                    job)))
+   (let [app-info (app-info-map app-id {})]
+     (format-job* agave
+                  app-id
+                  (app-listings/get-app-name app-info)
+                  (app-listings/get-app-description app-info)
+                  job)))
   ([agave jobs-enabled? statuses app-info-map {app-id :appId :as job}]
-     (let [app-info (app-info-map app-id {})]
-       (assoc (format-job agave jobs-enabled? app-info-map job)
-         :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
+   (let [app-info (app-info-map app-id {})]
+     (assoc (format-job agave jobs-enabled? app-info-map job)
+       :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
 
 (defn format-job-history
   [job-status-updates]

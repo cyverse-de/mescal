@@ -94,22 +94,22 @@
 
 (defn format-app
   ([agave app group-format-fn]
-     (let [system-name (:executionSystem app)
-           app-label   (get-app-name app)
-           mod-time    (util/to-utc (:lastModified app))]
-       {:groups           (group-format-fn app)
-        :deleted          false
-        :disabled         (system-available? agave system-name)
-        :label            app-label
-        :id               (:id app)
-        :name             app-label
-        :description      (get-app-description app)
-        :integration_date mod-time
-        :edited_date      mod-time
-        :app_type         c/hpc-app-type
-        :system_id        c/hpc-system-id}))
+   (let [system-name (:executionSystem app)
+         app-label   (get-app-name app)
+         mod-time    (util/to-utc (:lastModified app))]
+     {:groups           (group-format-fn app)
+      :deleted          false
+      :disabled         (system-available? agave system-name)
+      :label            app-label
+      :id               (:id app)
+      :name             app-label
+      :description      (get-app-description app)
+      :integration_date mod-time
+      :edited_date      mod-time
+      :app_type         c/hpc-app-type
+      :system_id        c/hpc-system-id}))
   ([agave app]
-     (format-app agave app format-groups)))
+   (format-app agave app format-groups)))
 
 (defn load-app-info
   [agave app-ids]
