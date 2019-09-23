@@ -95,7 +95,7 @@
   (agave-get token-info-fn timeout (curl/url base-url "/systems/v2/" system-name)))
 
 (def ^:private app-listing-fields
-  ["id" "label" "name" "version" "lastModified" "executionSystem" "shortDescription" "isPublic" "owner"])
+  ["id" "label" "name" "version" "lastModified" "executionSystem" "shortDescription" "isPublic" "owner" "available"])
 
 (defn- app-listing-params
   [params]
