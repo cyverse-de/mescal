@@ -72,12 +72,12 @@
 (defn prepare-submission
   [agave app submission]
   (->> (assoc (prepare-params agave app (:paramPrefix submission) (:config submission))
-         :name           (build-job-name submission)
-         :appId          (:app_id submission)
-         :archive        true
-         :archivePath    (.agaveFilePath agave (:output_dir submission))
-         :archiveSystem  (.storageSystem agave)
-         :notifications  (job-notifications (:callbackUrl submission)))
+              :name           (build-job-name submission)
+              :appId          (:app_id submission)
+              :archive        true
+              :archivePath    (.agaveFilePath agave (:output_dir submission))
+              :archiveSystem  (.storageSystem agave)
+              :notifications  (job-notifications (:callbackUrl submission)))
        (remove-vals nil?)))
 
 (defn- app-enabled?
@@ -118,7 +118,7 @@
   ([agave jobs-enabled? statuses app-info-map {app-id :appId :as job}]
    (let [app-info (app-info-map app-id {})]
      (assoc (format-job agave jobs-enabled? app-info-map job)
-       :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
+            :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
 
 (defn format-job-history
   [job-status-updates]

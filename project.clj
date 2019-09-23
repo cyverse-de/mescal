@@ -20,4 +20,5 @@
   :profiles {:repl {:source-paths ["src" "repl/src"]
                     :resource-paths ["repl/resources"]}}
   :plugins [[jonase/eastwood "0.3.5"]
+            [lein-cljfmt "0.6.4"]
             [test2junit "1.2.2"]])

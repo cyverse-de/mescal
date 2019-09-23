@@ -48,8 +48,8 @@
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]
   (assoc (hpc-app-group)
-    :apps  (map (partial format-app-listing statuses jobs-enabled?) (remove (complement :available) listing))
-    :total (count listing)))
+         :apps  (map (partial format-app-listing statuses jobs-enabled?) (remove (complement :available) listing))
+         :total (count listing)))
 
 (defn list-apps
   ([agave statuses jobs-enabled? opts]

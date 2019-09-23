@@ -23,8 +23,8 @@
 (defn empty-app-listing
   []
   (assoc (app-listings/hpc-app-group)
-    :apps  []
-    :total 0))
+         :apps  []
+         :total 0))
 
 (defn list-apps-with-ontology
   [agave jobs-enabled? term]

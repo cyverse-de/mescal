@@ -34,7 +34,7 @@
   (let [type     (get-in param [:value :type])
         ontology (get-in param [:semantics :ontology])
         xsd-type (first (filter (partial re-matches #"xs:.*") ontology))
-        regex    (get-in param [:value :validator]) ]
+        regex    (get-in param [:value :validator])]
     (cond
       (= type "number")    (number-type-for xsd-type)
       (= type "string")    (string-type-for xsd-type)

@@ -151,9 +151,9 @@
 (defn- add-file-info
   [prop]
   (assoc prop
-    :format         "Unspecified"
-    :retain         false
-    :file_info_type "File"))
+         :format         "Unspecified"
+         :retain         false
+         :file_info_type "File"))
 
 (defn format-app-tasks
   [app]
