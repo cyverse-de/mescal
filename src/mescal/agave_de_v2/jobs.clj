@@ -72,12 +72,13 @@
 (defn prepare-submission
   [agave app submission]
   (->> (assoc (prepare-params agave app (:paramPrefix submission) (:config submission))
-              :name           (build-job-name submission)
-              :appId          (:app_id submission)
-              :archive        true
-              :archivePath    (.agaveFilePath agave (:output_dir submission))
-              :archiveSystem  (.storageSystem agave)
-              :notifications  (job-notifications (:callbackUrl submission)))
+              :name              (build-job-name submission)
+              :appId             (:app_id submission)
+              :archive           true
+              :archiveOnAppError true
+              :archivePath       (.agaveFilePath agave (:output_dir submission))
+              :archiveSystem     (.storageSystem agave)
+              :notifications     (job-notifications (:callbackUrl submission)))
        (remove-vals nil?)))
 
 (defn- app-enabled?
