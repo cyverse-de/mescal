@@ -88,9 +88,10 @@
            (format-group "Parameters" (format-params (opt-param-formatter) (:parameters app)))
            (format-group "Outputs" (format-params (output-param-formatter) (:outputs app)))]))
 
-(defn system-available?
+(defn- system-disabled?
   [agave system-name]
-  (not= "UP" (:status (.getSystemInfo agave system-name))))
+  (let [{available? :available status :status} (.getSystemInfo agave system-name)]
+    (or (not available?) (not= "UP" status))))
 
 (defn format-app
   ([agave app group-format-fn]
@@ -99,7 +100,7 @@
          mod-time    (util/to-utc (:lastModified app))]
      {:groups           (group-format-fn app)
       :deleted          false
-      :disabled         (system-available? agave system-name)
+      :disabled         (system-disabled? agave system-name)
       :label            app-label
       :id               (:id app)
       :name             app-label
@@ -140,7 +141,7 @@
      :references           []
      :description          (get-app-description app)
      :deleted              false
-     :disabled             (system-available? agave (:executionSystem app))
+     :disabled             (system-disabled? agave (:executionSystem app))
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
      :suggested_categories []
