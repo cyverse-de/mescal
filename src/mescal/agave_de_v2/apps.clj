@@ -108,7 +108,8 @@
       :integration_date mod-time
       :edited_date      mod-time
       :app_type         c/hpc-app-type
-      :system_id        c/hpc-system-id}))
+      :system_id        c/hpc-system-id
+      :limitChecks      c/limit-checks}))
   ([agave app]
    (format-app agave app format-groups)))
 
