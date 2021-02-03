@@ -43,7 +43,8 @@
      :step_count           1
      :permission           "read"
      :wiki_url             ""
-     :owner                (:owner listing)}))
+     :owner                (:owner listing)
+     :limitChecks          c/limit-checks}))
 
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]

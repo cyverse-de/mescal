@@ -10,3 +10,7 @@
 (def hpc-group-overview
   {:id   hpc-group-id
    :name hpc-group-name})
+
+(def limit-checks
+  {:canRun      true
+   :reasonCodes []})
