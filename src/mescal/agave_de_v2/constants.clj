@@ -12,5 +12,5 @@
    :name hpc-group-name})
 
 (def limit-checks
-  {:canRun      true
-   :reasonCodes []})
+  {:canRun  true
+   :results []})
