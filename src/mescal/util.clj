@@ -4,6 +4,7 @@
         [slingshot.slingshot :only [throw+]])
   (:require [cemerick.url :as curl]
             [cheshire.core :as cheshire]
+            [clj-time.core :as t]
             [clj-time.format :as tf]
             [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -28,18 +29,25 @@
     (cheshire/decode source true)
     (cheshire/decode-stream (reader source) true)))
 
+(def ^:private accepted-timestamp-formats
+  ["yyyy-MM-dd'T'HH:mm:ssZZ"
+   "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"])
+
+(def ^:private formatter
+  (apply tf/formatter t/utc accepted-timestamp-formats))
+
 (defn to-utc
   "Converts a formatted timestamp to UTC."
   [timestamp]
   (when-not (nil? timestamp)
-    (->> (tf/parse (:date-time tf/formatters) timestamp)
-         (tf/unparse (:date-time tf/formatters)))))
+    (->> (tf/parse formatter timestamp)
+         (tf/unparse formatter))))
 
 (defn to-millis
   "Converts a formatted timestamp to milliseconds since the epoch."
   [timestamp]
   (when-not (nil? timestamp)
-    (.getMillis (tf/parse (:date-time tf/formatters) timestamp))))
+    (.getMillis (tf/parse formatter timestamp))))
 
 (defn get-boolean
   [value default]
