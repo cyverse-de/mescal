@@ -15,7 +15,7 @@
   (testing "to-utc for a timestamp without milliseconds"
     (is (= "2021-02-23T21:50:33+00:00" (to-utc "2021-02-23T21:50:33Z")))
     (is (= "2021-02-23T22:50:33+00:00" (to-utc "2021-02-23T21:50:33-01:00"))))
-  (testing "to-utic for a timestamp with milliseconds"
+  (testing "to-utc for a timestamp with milliseconds"
     (is (= "2021-02-23T21:50:33+00:00" (to-utc "2021-02-23T21:50:33.123Z")))
     (is (= "2021-02-23T22:50:33+00:00" (to-utc "2021-02-23T21:50:33.123-01:00"))))
   (testing "to-millis for a timestamp without milliseconds"
