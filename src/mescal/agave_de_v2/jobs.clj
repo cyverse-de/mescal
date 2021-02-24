@@ -28,10 +28,15 @@
           (into {})
           (remove-vals nil?)))))
 
+(defn- preprocess-param-value
+  [v]
+  (let [v (if (map? v) (:value v) v)]
+    (when-not (= v "") v)))
+
 (defn- prepare-params
   [agave app param-prefix config]
   {:inputs     (params-for config param-prefix (app :inputs) #(.agaveUrl agave %))
-   :parameters (params-for config param-prefix (app :parameters) #(if (map? %) (:value %) %))})
+   :parameters (params-for config param-prefix (app :parameters) preprocess-param-value)})
 
 (def ^:private submitted "Submitted")
 (def ^:private running "Running")
