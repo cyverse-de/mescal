@@ -129,7 +129,6 @@
 
 (defn submit-job
   [base-url token-info-fn timeout submission]
-  (util/log-json "job" submission)
   (agave-post token-info-fn timeout (curl/url base-url "/jobs/v2/") submission))
 
 (defn list-jobs

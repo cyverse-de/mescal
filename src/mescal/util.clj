@@ -29,13 +29,6 @@
     (cheshire/decode source true)
     (cheshire/decode-stream (reader source) true)))
 
-(defn log-json
-  [description m]
-  (->> (cheshire/encode m {:pretty true})
-       (str description ": ")
-       (log/info))
-  m)
-
 (def ^:private accepted-timestamp-formats
   ["yyyy-MM-dd'T'HH:mm:ssZZ"
    "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"])
