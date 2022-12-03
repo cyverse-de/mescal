@@ -145,6 +145,15 @@
      :disabled             (system-disabled? agave (:executionSystem app))
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
+     :app_type             c/hpc-app-type
+     :can_favor            false
+     :can_rate             false
+     :can_run              true
+     :is_public            (boolean (:isPublic app))
+     :permission           "read"
+     :pipeline_eligibility {:is_valid true :reason ""}
+     :rating               {:average 0.0 :total 0}
+     :step_count           1
      :suggested_categories []
      :system_id            c/hpc-system-id
      :wiki_url             (:helpURI app)
