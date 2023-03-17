@@ -1,5 +1,5 @@
-(ns mescal.agave-de-v2.app-listings
-  (:require [mescal.agave-de-v2.constants :as c]
+(ns mescal.tapis-de-v3.app-listings
+  (:require [mescal.tapis-de-v3.constants :as c]
             [mescal.util :as util]))
 
 (defn hpc-app-group
@@ -53,11 +53,11 @@
          :total (count listing)))
 
 (defn list-apps
-  ([agave statuses jobs-enabled? opts]
-   (format-app-listing-response (.listApps agave opts) statuses jobs-enabled?))
-  ([agave statuses jobs-enabled? app-ids opts]
-   (format-app-listing-response (.listApps agave app-ids opts) statuses jobs-enabled?)))
+  ([tapis statuses jobs-enabled? opts]
+   (format-app-listing-response (.listApps tapis opts) statuses jobs-enabled?))
+  ([tapis statuses jobs-enabled? app-ids opts]
+   (format-app-listing-response (.listApps tapis app-ids opts) statuses jobs-enabled?)))
 
 (defn list-apps-with-ontology
-  [agave statuses jobs-enabled? term]
-  (format-app-listing-response (.listAppsWithOntology agave term) statuses jobs-enabled?))
+  [tapis statuses jobs-enabled? term]
+  (format-app-listing-response (.listAppsWithOntology tapis term) statuses jobs-enabled?))

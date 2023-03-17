@@ -1,8 +1,8 @@
-(ns mescal.agave-de-v2.apps
+(ns mescal.tapis-de-v3.apps
   (:use [medley.core :only [remove-vals]]
-        [mescal.agave-de-v2.app-listings :only [get-app-name get-app-description]])
-  (:require [mescal.agave-de-v2.constants :as c]
-            [mescal.agave-de-v2.params :as mp]
+        [mescal.tapis-de-v3.app-listings :only [get-app-name get-app-description]])
+  (:require [mescal.tapis-de-v3.constants :as c]
+            [mescal.tapis-de-v3.params :as mp]
             [mescal.util :as util]))
 
 (defn- get-boolean
@@ -89,18 +89,18 @@
            (format-group "Outputs" (format-params (output-param-formatter) (:outputs app)))]))
 
 (defn- system-disabled?
-  [agave system-name]
-  (let [{available? :available status :status} (.getSystemInfo agave system-name)]
+  [tapis system-name]
+  (let [{available? :available status :status} (.getSystemInfo tapis system-name)]
     (or (not available?) (not= "UP" status))))
 
 (defn format-app
-  ([agave app group-format-fn]
+  ([tapis app group-format-fn]
    (let [system-name (:executionSystem app)
          app-label   (get-app-name app)
          mod-time    (util/to-utc (:lastModified app))]
      {:groups           (group-format-fn app)
       :deleted          false
-      :disabled         (system-disabled? agave system-name)
+      :disabled         (system-disabled? tapis system-name)
       :label            app-label
       :id               (:id app)
       :name             app-label
@@ -110,12 +110,12 @@
       :app_type         c/hpc-app-type
       :system_id        c/hpc-system-id
       :limitChecks      c/limit-checks}))
-  ([agave app]
-   (format-app agave app format-groups)))
+  ([tapis app]
+   (format-app tapis app format-groups)))
 
 (defn load-app-info
-  [agave app-ids]
-  (->> (.listApps agave)
+  [tapis app-ids]
+  (->> (.listApps tapis)
        (filter (comp (set app-ids) :id))
        (map (juxt :id identity))
        (into {})))
@@ -131,7 +131,7 @@
    :version     (:version app)})
 
 (defn format-app-details
-  [agave app]
+  [tapis app]
   (let [mod-time (util/to-utc (:lastModified app))]
     {:integrator_name      c/unknown-value
      :integrator_email     c/unknown-value
@@ -142,7 +142,7 @@
      :references           []
      :description          (get-app-description app)
      :deleted              false
-     :disabled             (system-disabled? agave (:executionSystem app))
+     :disabled             (system-disabled? tapis (:executionSystem app))
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
      :app_type             c/hpc-app-type
@@ -200,8 +200,8 @@
           (get-default-param-value p)))))
 
 (defn- format-groups-for-rerun
-  [agave job app]
-  (let [input-getter (comp #(.irodsFilePath agave %) (app-rerun-value-getter job :inputs))
+  [tapis job app]
+  (let [input-getter (comp #(.irodsFilePath tapis %) (app-rerun-value-getter job :inputs))
         format-input (input-param-formatter :get-default input-getter)
         opt-getter   (app-rerun-value-getter job :parameters)
         format-opt   (opt-param-formatter :get-default opt-getter)]
@@ -211,8 +211,8 @@
              (format-group "Outputs" (map (output-param-formatter) (:outputs app)))])))
 
 (defn format-app-rerun-info
-  [agave app job]
-  (format-app agave app (partial format-groups-for-rerun agave job)))
+  [tapis app job]
+  (format-app tapis app (partial format-groups-for-rerun tapis job)))
 
 (defn- convert-permissions
   [perms]
@@ -226,14 +226,14 @@
    :permission (convert-permissions perms)})
 
 (defn format-app-permissions
-  "Formats an Agave app permissions response for use in the DE."
+  "Formats a Tapis app permissions response for use in the DE."
   [app-id permissions]
   {:system_id   c/hpc-system-id
    :app_id      app-id
    :permissions (map format-app-permission permissions)})
 
 (defn format-update-permission
-  "Formats a DE permission level for updating in Agave."
+  "Formats a DE permission level for updating in Tapis."
   [level]
   (when level
     (if (= level "read")

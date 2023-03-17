@@ -9,8 +9,8 @@
             [mescal.de :as de])
   (:import [java.sql Timestamp]))
 
-(defn- get-agave-info-file []
-  (let [f (file (System/getProperty "user.home") ".agave" "current")]
+(defn- get-tapis-info-file []
+  (let [f (file (System/getProperty "user.home") ".tapis" "current")]
     (when-not (.exists f) (throw (IllegalStateException. (str (.getAbsolutePath f) " does not exist"))))
     (when-not (.isFile f) (throw (IllegalStateException. (str (.getAbsolutePath f) " is not a regular file"))))
     (when-not (.canRead f) (throw (IllegalStateException. (str (.getAbsolutePath f) " is not readable"))))
@@ -24,7 +24,7 @@
 
 (defn- get-server-info []
   (let [token-info  (json/decode (:out (string/replace (sh "auth-tokens-refresh" "-v") #"^[^\n]+\n" "")))
-        server-info (json/decode (slurp (get-agave-info-file)) true)
+        server-info (json/decode (slurp (get-tapis-info-file)) true)
         info        (merge token-info server-info)]
     {:api-name       "agave"
      :base-url       (:baseurl info)
@@ -40,17 +40,17 @@
      :access-token   (:access_token info)
      :expires-at     (parse-timestamp (:expires_at info))}))
 
-(defn get-de-agave-client [storage-system & {:keys [jobs-enabled] :or {jobs-enabled true}}]
+(defn get-de-tapis-client [storage-system & {:keys [jobs-enabled] :or {jobs-enabled true}}]
   (let [server-info (get-server-info)]
-    (de/de-agave-client-v2
+    (de/de-tapis-client-v3
      (:base-url server-info)
      storage-system
      (constantly server-info)
      jobs-enabled)))
 
-(defn get-agave-client [storage-system]
+(defn get-tapis-client [storage-system]
   (let [server-info (get-server-info)]
-    (mc/agave-client-v2
+    (mc/tapis-client-v3
      (:base-url server-info)
      storage-system
      (constantly server-info))))

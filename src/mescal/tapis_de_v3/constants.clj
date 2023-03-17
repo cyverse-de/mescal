@@ -1,4 +1,4 @@
-(ns mescal.agave-de-v2.constants)
+(ns mescal.tapis-de-v3.constants)
 
 (def hpc-app-type "External")
 (def hpc-system-id "agave")
