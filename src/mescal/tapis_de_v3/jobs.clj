@@ -1,12 +1,11 @@
-(ns mescal.agave-de-v2.jobs
+(ns mescal.tapis-de-v3.jobs
   (:use [clojure.java.io :only [file]]
         [medley.core :only [remove-vals]])
-  (:require [clj-time.core :as t]
-            [clj-time.format :as tf]
+  (:require [clj-time.format :as tf]
             [clojure.string :as string]
-            [mescal.agave-de-v2.app-listings :as app-listings]
-            [mescal.agave-de-v2.job-params :as params]
-            [mescal.agave-de-v2.constants :as c]
+            [mescal.tapis-de-v3.app-listings :as app-listings]
+            [mescal.tapis-de-v3.job-params :as params]
+            [mescal.tapis-de-v3.constants :as c]
             [mescal.util :as util]))
 
 (def ^:private timestamp-formatter
@@ -34,8 +33,8 @@
     (when-not (= v "") v)))
 
 (defn- prepare-params
-  [agave app param-prefix config]
-  {:inputs     (params-for config param-prefix (app :inputs) #(.agaveUrl agave %))
+  [tapis app param-prefix config]
+  {:inputs     (params-for config param-prefix (app :inputs) #(.tapisUrl tapis %))
    :parameters (params-for config param-prefix (app :parameters) preprocess-param-value)})
 
 (def ^:private submitted "Submitted")
@@ -75,14 +74,14 @@
   (format "%s_%04d" (:job_id submission) (:step_number submission 1)))
 
 (defn prepare-submission
-  [agave app submission]
-  (->> (assoc (prepare-params agave app (:paramPrefix submission) (:config submission))
+  [tapis app submission]
+  (->> (assoc (prepare-params tapis app (:paramPrefix submission) (:config submission))
               :name              (build-job-name submission)
               :appId             (:app_id submission)
               :archive           true
               :archiveOnAppError true
-              :archivePath       (.agaveFilePath agave (:output_dir submission))
-              :archiveSystem     (.storageSystem agave)
+              :archivePath       (.tapisFilePath tapis (:output_dir submission))
+              :archiveSystem     (.storageSystem tapis)
               :notifications     (job-notifications (:callbackUrl submission)))
        (remove-vals nil?)))
 
@@ -93,12 +92,12 @@
        (= "up" (statuses (:executionHost listing)))))
 
 (defn- get-result-folder-id
-  [agave job]
-  (when-let [agave-path (or (:archivePath job) (get-in job [:_links :archiveData :href]))]
-    (.irodsFilePath agave agave-path)))
+  [tapis job]
+  (when-let [tapis-path (or (:archivePath job) (get-in job [:_links :archiveData :href]))]
+    (.irodsFilePath tapis tapis-path)))
 
 (defn format-job*
-  [agave app-id app-name app-description job]
+  [tapis app-id app-name app-description job]
   {:id              (str (:id job))
    :app_id          app-id
    :app_description app-description
@@ -108,22 +107,22 @@
    :system_id       c/hpc-system-id
    :name            (:name job)
    :raw_status      (:status job)
-   :resultfolderid  (get-result-folder-id agave job)
+   :resultfolderid  (get-result-folder-id tapis job)
    :startdate       (or (util/to-utc (:startTime job)) "")
    :status          (job-status-translations (:status job) "")
    :wiki_url        ""})
 
 (defn format-job
-  ([agave jobs-enabled? app-info-map {app-id :appId :as job}]
+  ([tapis jobs-enabled? app-info-map {app-id :appId :as job}]
    (let [app-info (app-info-map app-id {})]
-     (format-job* agave
+     (format-job* tapis
                   app-id
                   (app-listings/get-app-name app-info)
                   (app-listings/get-app-description app-info)
                   job)))
-  ([agave jobs-enabled? statuses app-info-map {app-id :appId :as job}]
+  ([tapis jobs-enabled? statuses app-info-map {app-id :appId :as job}]
    (let [app-info (app-info-map app-id {})]
-     (assoc (format-job agave jobs-enabled? app-info-map job)
+     (assoc (format-job tapis jobs-enabled? app-info-map job)
             :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
 
 (defn format-job-history
@@ -134,8 +133,8 @@
      :timestamp (str (util/to-millis (:created update)))}))
 
 (defn format-job-submisison-response
-  [agave submission job]
-  (format-job* agave
+  [tapis submission job]
+  (format-job* tapis
                (:appId submission)
                (:appName submission)
                (:appDescription submission)
@@ -146,17 +145,17 @@
   (get job-status-translations status))
 
 (defn regenerate-job-submission
-  [agave job]
+  [tapis job]
   (let [app-id     (:appId job)
-        app        (.getApp agave app-id)
-        job-params (:parameters (params/format-params agave job app-id app))
+        app        (.getApp tapis app-id)
+        job-params (:parameters (params/format-params tapis job app-id app))
         cfg-entry  (juxt (comp keyword :param_id) (comp :value :param_value))]
     {:system_id            c/hpc-system-id
      :app_id               app-id
      :name                 (:name job)
      :debug                false
      :notify               false
-     :output_dir           (get-result-folder-id agave job)
+     :output_dir           (get-result-folder-id tapis job)
      :create_output_subdir true
      :description          ""
      :config               (into {} (map cfg-entry job-params))}))
