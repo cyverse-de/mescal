@@ -53,7 +53,7 @@
   (with-refresh [token-info-fn timeout]
     ((comp :result :body)
      (http/get (str url)
-               {:oauth-token    (:access-token @(token-info-fn))
+               {:headers        {"X-Tapis-Token" (:access-token @(token-info-fn))}
                 :query-params   (remove-vals nil? (or params {}))
                 :as             :json
                 :conn-timeout   timeout
@@ -80,7 +80,7 @@
   (with-refresh [token-info-fn timeout]
     ((comp :result :body)
      (http/post (str url)
-                {:oauth-token   (:access-token @(token-info-fn))
+                {:headers        {"X-Tapis-Token" (:access-token @(token-info-fn))}
                  :as            :json
                  :accept        :json
                  :content-type  :json

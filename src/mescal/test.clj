@@ -26,7 +26,7 @@
   {:api-name      "tapis"
    :client-key    api-key
    :client-secret api-secret
-   :token-uri     (str (curl/url base-url "oauth2" "token"))})
+   :token-uri     (str (curl/url base-url "oauth2" "tokens"))})
 
 (defn- get-token [base-url api-key api-secret username password]
   (let [oauth-info (get-oauth-info base-url api-key api-secret)]

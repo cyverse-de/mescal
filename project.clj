@@ -11,7 +11,7 @@
                  [clj-time "0.15.2"]
                  [com.cemerick/url "0.1.1" :exclusions [com.cemerick/clojurescript.test]]
                  [medley "1.3.0"]
-                 [org.cyverse/authy "2.8.0"]
+                 [org.cyverse/authy "3.0.0"]
                  [org.cyverse/clojure-commons "3.0.6"]
                  [org.cyverse/service-logging "2.8.2"]
                  [slingshot "0.12.2"]]
