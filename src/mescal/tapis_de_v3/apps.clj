@@ -90,8 +90,7 @@
 
 (defn- system-disabled?
   [tapis system-name]
-  (let [{available? :available status :status} (.getSystemInfo tapis system-name)]
-    (or (not available?) (not= "UP" status))))
+  (not (:enabled (.getSystemInfo tapis system-name))))
 
 (defn format-app
   ([tapis app group-format-fn]

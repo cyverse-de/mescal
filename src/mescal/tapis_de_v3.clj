@@ -11,7 +11,9 @@
 
 (defn- get-system-statuses
   [tapis]
-  (into {} (map (juxt :id :status) (.listSystems tapis))))
+  (->> (.listSystems tapis)
+       (map (juxt :id (comp parse-boolean :enabled)))
+       (into {})))
 
 (defn list-apps
   ([tapis jobs-enabled? opts]
