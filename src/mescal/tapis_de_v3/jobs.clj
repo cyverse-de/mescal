@@ -89,7 +89,7 @@
   [statuses jobs-enabled? listing]
   (and jobs-enabled?
        (:available listing)
-       (= "up" (statuses (:executionHost listing)))))
+       (statuses (:executionHost listing))))
 
 (defn- get-result-folder-id
   [tapis job]

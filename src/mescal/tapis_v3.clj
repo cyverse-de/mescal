@@ -88,7 +88,9 @@
 
 (defn list-systems
   [base-url token-info-fn timeout page-len]
-  (tapis-get token-info-fn timeout (curl/url base-url "/v3/systems/") {:page-len page-len}))
+  (tapis-get token-info-fn timeout (curl/url base-url "/v3/systems/") {:page-len page-len
+                                                                       :select   "id,enabled,systemType"
+                                                                       :listType "ALL"}))
 
 (defn get-system-info
   [base-url token-info-fn timeout system-name]
@@ -151,13 +153,12 @@
 
 (def ^:private root-dir-for
   (memoize (fn [base-url token-info-fn timeout storage-system]
-             ((comp :rootDir :storage)
-              (get-system-info base-url token-info-fn timeout storage-system)))))
+             (:rootDir (get-system-info base-url token-info-fn timeout storage-system)))))
 
 (def ^:private get-default-storage-system
   (memoize (fn [base-url token-info-fn timeout page-len]
              (->> (list-systems base-url token-info-fn timeout page-len)
-                  (filter #(and (= (:type %) "STORAGE") (:default %)))
+                  (filter #(= (:systemType %) "IRODS"))
                   (first)
                   (:id)))))
 
