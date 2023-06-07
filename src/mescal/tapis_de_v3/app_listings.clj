@@ -11,17 +11,17 @@
    :total        -1})
 
 (defn get-app-name
-  [app]
-  (str (or (:label app) (:name app)) " " (:version app)))
+  [{:keys [id version notes]}]
+  (str (or (:label notes) (:name notes) id) " " version))
 
 (defn get-app-description
   [app]
-  (or (:shortDescription app) "[no description provided]"))
+  (or (:description app) "[no description provided]"))
 
 (defn- format-app-listing
   [statuses jobs-enabled? listing]
-  (let [mod-time (util/to-utc (:lastModified listing))
-        system   (:executionSystem listing)]
+  (let [mod-time (util/to-utc (:updated listing))
+        system   (:execSystemId (:jobAttributes listing))]
     {:id                   (:id listing)
      :name                 (get-app-name listing)
      :description          (get-app-description listing)
@@ -32,7 +32,9 @@
      :can_rate             false
      :can_run              true
      :deleted              false
-     :disabled             (not (and jobs-enabled? (statuses system)))
+     :disabled             (not (and (boolean (:enabled listing))
+                                     jobs-enabled?
+                                     (statuses system)))
      :system_id            c/hpc-system-id
      :integrator_email     c/unknown-value
      :integrator_name      c/unknown-value
@@ -49,7 +51,8 @@
 (defn- format-app-listing-response
   [listing statuses jobs-enabled?]
   (assoc (hpc-app-group)
-         :apps  (map (partial format-app-listing statuses jobs-enabled?) (remove (complement :available) listing))
+         :apps  (map (partial format-app-listing statuses jobs-enabled?)
+                     (remove (comp not boolean :enabled) listing))
          :total (count listing)))
 
 (defn list-apps

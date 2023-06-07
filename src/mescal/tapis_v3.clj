@@ -97,16 +97,40 @@
   (tapis-get token-info-fn timeout (curl/url base-url "/v3/systems/" system-name)))
 
 (def ^:private app-listing-fields
-  ["id" "label" "name" "version" "lastModified" "executionSystem" "shortDescription" "isPublic" "owner" "available"])
+  ["id"
+   "version"
+   "description"
+   "updated"
+   "owner"
+   "isPublic"
+   "enabled"
+   "jobAttributes"])
+
+(defn- format-search-param
+  [search-field search-value]
+  (if search-value
+    {:search (format "(%s.in.%s)" search-field search-value)}
+    {}))
+
+(defn- format-search-params
+  "Tapis search params should be formatted like
+   `search=(id.in.id-1,id-2)~(tags.in.term)`"
+  [{id-in :id.in ontology-like :ontology.like}]
+  (let [id-search       (format-search-param "id" id-in)
+        ontology-search (format-search-param "tags" ontology-like)]
+    (merge-with (partial string/join "~")
+                id-search
+                ontology-search)))
 
 (defn- app-listing-params
   [params]
-  (merge (select-keys params [:page-len :id.in :ontology.like])
-         {:filter (string/join "," app-listing-fields)}
+  (merge (select-keys params [:page-len])
+         {:select (string/join "," app-listing-fields)}
+         (format-search-params params)
          (case (:app-subset params)
-           :public  {:publicOnly "true"}
-           :private {:privateOnly "true"}
-           {})))
+           :public  {:listType "SHARED_PUBLIC"}
+           :private {:listType "OWNED"}
+           {:listType "ALL"})))
 
 (defn list-apps
   [base-url token-info-fn timeout params]
