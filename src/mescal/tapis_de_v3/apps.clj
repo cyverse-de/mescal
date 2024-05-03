@@ -5,6 +5,16 @@
             [mescal.tapis-de-v3.params :as mp]
             [mescal.util :as util]))
 
+(def param-input-mode
+  "REQUIRED: Must be provided in a job request.
+  FIXED: Defined in the app and not overridable in a job request.
+  INCLUDE_ON_DEMAND (default): Included if referenced in a job request.
+  INCLUDE_BY_DEFAULT: Included unless include=false in a job request."
+  {:required           "REQUIRED"
+   :fixed              "FIXED"
+   :include-on-demand  "INCLUDE_ON_DEMAND"
+   :include-by-default "INCLUDE_BY_DEFAULT"})
+
 (defn- get-boolean
   [value default]
   (cond (nil? value)    default
@@ -20,22 +30,21 @@
      :label       name
      :parameters  params}))
 
-(defn- format-input-validator
-  [input]
-  {:required (get-boolean (get-in input [:value :required]) false)})
-
 (defn- format-param
   [get-type get-value get-args param]
   (remove-vals nil?
-               {:description  (get-in param [:details :description])
+               {:description  (:description param)
                 :arguments    (get-args param)
                 :defaultValue (get-value param)
-                :id           (:id param)
-                :isVisible    (get-boolean (get-in param [:value :visible]) false)
-                :label        (get-in param [:details :label])
-                :name         (:id param)
+                :id           (:name param)
+                :isVisible    (and (not= (:inputMode param) (:fixed param-input-mode))
+                                   (get-boolean (get-in param [:notes :value :visible]) true))
+                :label        (or (get-in param [:notes :details :label])
+                                  (:name param))
+                :name         (:name param)
                 :order        0
-                :required     (get-boolean (get-in param [:value :required]) false)
+                :required     (or (= (:inputMode param) (:required param-input-mode))
+                                  (get-boolean (get-in param [:notes :value :required]) false))
                 :type         (get-type param)
                 :validators   []}))
 
@@ -45,7 +54,7 @@
     (format-param get-type get-value get-args param)))
 
 (defn- get-default-enum-value
-  [{value-obj :value :as param}]
+  [{{value-obj :value} :notes}]
   (let [enum-values (util/get-enum-values value-obj)
         default     (:default value-obj)]
     (when-let [default-elem (mp/find-enum-element default enum-values)]
@@ -55,10 +64,11 @@
   [param]
   (if (mp/enum-param? param)
     (get-default-enum-value param)
-    (get-in param [:value :default])))
+    (or (:arg param)
+        (get-in param [:notes :value :default]))))
 
 (defn- get-param-args
-  [{value-obj :value :as param}]
+  [{{value-obj :value} :notes :as param}]
   (let [enum-values (util/get-enum-values value-obj)
         default     (:default value-obj)]
     (if (mp/enum-param? param)
@@ -79,14 +89,43 @@
 
 (defn- format-params
   [formatter-fn params]
-  (map formatter-fn (sort-by #(get-in % [:value :order] 0) params)))
+  (map formatter-fn (sort-by #(get-in % [:notes :value :order] 0) params)))
+
+(defn- parse-app-args
+  "Sorts Tapis app args, returning them in a list of 3 groups: inputs, params, and outputs.
+  Input args come from the `jobAttributes.fileInputs` list, and any params with a matching name
+  found inside the `jobAttributes.appArgs.parameterSet` will take the place of the matching
+  `fileInputs` param in the first group of the results.
+  Output args come from the `notes.outputs` field, and just like input params, any params with a
+  matching name found inside the `parameterSet` will take the place of the matching output param
+  in the last group of the results.
+  The remaining args in the `parameterSet` will be returned in the second group of the results."
+  [{:keys [jobAttributes notes]}]
+  (let [app-args        (:appArgs (:parameterSet jobAttributes))
+        inputs          (:fileInputs jobAttributes)
+        outputs         (:outputs notes)
+        input-names     (map :name inputs)
+        input-name-set  (set input-names)
+        arg-names       (map :name app-args)
+        arg-names-set   (set arg-names)
+        output-names    (filter #(contains? arg-names-set %) (map :name outputs))
+        output-name-set (set output-names)
+        all-args        (group-by :name (concat app-args inputs outputs))
+        get-first-arg   (comp first #(get all-args %))
+        filtered-params (map get-first-arg
+                             (remove #(or (get input-name-set %) (get output-name-set %))
+                                     arg-names))]
+    [(map get-first-arg input-names)
+     filtered-params
+     (map get-first-arg output-names)]))
 
 (defn format-groups
   [app]
-  (remove nil?
-          [(format-group "Inputs" (format-params (input-param-formatter) (:inputs app)))
-           (format-group "Parameters" (format-params (opt-param-formatter) (:parameters app)))
-           (format-group "Outputs" (format-params (output-param-formatter) (:outputs app)))]))
+  (let [[inputs params outputs] (parse-app-args app)]
+    (remove nil?
+            [(format-group "Inputs" (format-params (input-param-formatter) inputs))
+             (format-group "Parameters" (format-params (opt-param-formatter) params))
+             (format-group "Outputs" (format-params (output-param-formatter) outputs))])))
 
 (defn- system-disabled?
   [tapis system-name]
@@ -94,9 +133,9 @@
 
 (defn format-app
   ([tapis app group-format-fn]
-   (let [system-name (:executionSystem app)
+   (let [system-name (:execSystemId (:jobAttributes app))
          app-label   (get-app-name app)
-         mod-time    (util/to-utc (:lastModified app))]
+         mod-time    (util/to-utc (:updated app))]
      {:groups           (group-format-fn app)
       :deleted          false
       :disabled         (system-disabled? tapis system-name)
@@ -120,18 +159,18 @@
        (into {})))
 
 (defn format-tool-for-app
-  [{path :deploymentPath :as app}]
+  [{:keys [id version containerImage jobType] :as app}]
   {:attribution ""
    :description (get-app-description app)
-   :id          (:id app)
-   :location    path
-   :name        (:id app)
-   :type        (:executionType app)
-   :version     (:version app)})
+   :id          id
+   :location    containerImage
+   :name        id
+   :type        jobType
+   :version     version})
 
 (defn format-app-details
   [tapis app]
-  (let [mod-time (util/to-utc (:lastModified app))]
+  (let [mod-time (util/to-utc (:updated app))]
     {:integrator_name      c/unknown-value
      :integrator_email     c/unknown-value
      :integration_date     mod-time
@@ -141,7 +180,7 @@
      :references           []
      :description          (get-app-description app)
      :deleted              false
-     :disabled             (system-disabled? tapis (:executionSystem app))
+     :disabled             (system-disabled? tapis (:execSystemId (:jobAttributes app)))
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
      :app_type             c/hpc-app-type
@@ -155,7 +194,7 @@
      :step_count           1
      :suggested_categories []
      :system_id            c/hpc-system-id
-     :wiki_url             (:helpURI app)
+     :wiki_url             (:helpURI (:notes app))
      :owner                (:owner app)}))
 
 (defn- add-file-info
@@ -200,14 +239,15 @@
 
 (defn- format-groups-for-rerun
   [tapis job app]
-  (let [input-getter (comp #(.irodsFilePath tapis %) (app-rerun-value-getter job :inputs))
+  (let [[inputs parameters outputs] (parse-app-args app)
+        input-getter (comp #(.irodsFilePath tapis %) (app-rerun-value-getter job :inputs))
         format-input (input-param-formatter :get-default input-getter)
         opt-getter   (app-rerun-value-getter job :parameters)
         format-opt   (opt-param-formatter :get-default opt-getter)]
     (remove nil?
-            [(format-group "Inputs" (map format-input (:inputs app)))
-             (format-group "Parameters" (map format-opt (:parameters app)))
-             (format-group "Outputs" (map (output-param-formatter) (:outputs app)))])))
+            [(format-group "Inputs" (map format-input inputs))
+             (format-group "Parameters" (map format-opt parameters))
+             (format-group "Outputs" (map (output-param-formatter) outputs))])))
 
 (defn format-app-rerun-info
   [tapis app job]
