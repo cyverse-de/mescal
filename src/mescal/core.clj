@@ -10,8 +10,11 @@
   (listAppsWithOntology [_ term])
   (getApp [_ app-id])
   (getAppPermission [_ app-id username])
-  (listAppPermissions [_ app-ids])
-  (shareAppWithUser [_ app-id username level])
+  (grantAppPermission [_ app-id username levels])
+  (revokeAppPermission [_ app-id username levels])
+  (listAppShares [_ app-ids])
+  (shareAppWithUsers [_ app-id users])
+  (unshareAppWithUsers [_ app-id users])
   (submitJob [_ submission])
   (listJobs [_] [_ job-ids])
   (listJob [_ job-id])
@@ -54,12 +57,21 @@
   (getAppPermission [_ app-id username]
     (v3/check-access-token token-info-fn timeout)
     (v3/get-app-permission base-url token-info-fn timeout app-id username))
-  (listAppPermissions [_ app-id]
+  (grantAppPermission [_ app-id username levels]
     (v3/check-access-token token-info-fn timeout)
-    (v3/list-app-permissions base-url token-info-fn timeout app-id))
-  (shareAppWithUser [_ app-id username level]
+    (v3/grant-user-app-permissions base-url token-info-fn timeout app-id username levels))
+  (revokeAppPermission [_ app-id username levels]
     (v3/check-access-token token-info-fn timeout)
-    (v3/share-app-with-user base-url token-info-fn timeout app-id username level))
+    (v3/revoke-user-app-permissions base-url token-info-fn timeout app-id username levels))
+  (listAppShares [_ app-id]
+    (v3/check-access-token token-info-fn timeout)
+    (v3/list-app-shares base-url token-info-fn timeout app-id))
+  (shareAppWithUsers [_ app-id users]
+    (v3/check-access-token token-info-fn timeout)
+    (v3/share-app-with-users base-url token-info-fn timeout app-id users))
+  (unshareAppWithUsers [_ app-id users]
+    (v3/check-access-token token-info-fn timeout)
+    (v3/unshare-app-with-users base-url token-info-fn timeout app-id users))
   (submitJob [_ submission]
     (v3/check-access-token token-info-fn timeout)
     (v3/submit-job base-url token-info-fn timeout submission))

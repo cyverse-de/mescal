@@ -141,17 +141,29 @@
   [base-url token-info-fn timeout app-id]
   (tapis-get token-info-fn timeout (curl/url base-url "/v3/apps" app-id)))
 
-(defn list-app-permissions
+(defn list-app-shares
   [base-url token-info-fn timeout app-id]
-  (tapis-get token-info-fn timeout (curl/url base-url "/v3/apps" app-id "pems")))
+  (tapis-get token-info-fn timeout (curl/url base-url "/v3/apps/share" app-id)))
 
 (defn get-app-permission
   [base-url token-info-fn timeout app-id username]
-  (tapis-get token-info-fn timeout (curl/url base-url "/v3/apps" app-id "pems" username)))
+  (tapis-get token-info-fn timeout (curl/url base-url "/v3/apps/perms" app-id "user" username)))
 
-(defn share-app-with-user
-  [base-url token-info-fn timeout app-id username level]
-  (tapis-post token-info-fn timeout (curl/url base-url "/v3/apps" app-id "pems" username) {:permission level}))
+(defn grant-user-app-permissions
+  [base-url token-info-fn timeout app-id username levels]
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/apps/perms" app-id "user" username) {:permissions levels}))
+
+(defn revoke-user-app-permissions
+  [base-url token-info-fn timeout app-id username levels]
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/apps/perms" app-id "user" username "revoke") {:permissions levels}))
+
+(defn share-app-with-users
+  [base-url token-info-fn timeout app-id users]
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/apps/share" app-id) {:users users}))
+
+(defn unshare-app-with-users
+  [base-url token-info-fn timeout app-id users]
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/apps/unshare" app-id) {:users users}))
 
 (defn submit-job
   [base-url token-info-fn timeout submission]

@@ -17,6 +17,7 @@
   (hasAppPermission [_ username app-id required-level])
   (listAppPermissions [_ app-ids])
   (shareAppWithUser [_ username app-id level])
+  (unshareAppWithUser [_ username app-id])
   (submitJob [_ submission])
   (prepareJobSubmission [_ submission])
   (sendJobSubmission [_ submission])
@@ -65,6 +66,8 @@
     (v3/list-app-permissions tapis app-ids))
   (shareAppWithUser [_ username app-id level]
     (v3/share-app-with-user tapis username app-id level))
+  (unshareAppWithUser [_ username app-id]
+    (v3/unshare-app-with-user tapis username app-id))
   (submitJob [this submission]
     (->> (.prepareJobSubmission this submission)
          (.sendJobSubmission this)))

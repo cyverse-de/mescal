@@ -67,30 +67,43 @@
   [tapis app-id]
   (mapv :id (:inputs (.getApp tapis app-id))))
 
+(defn- get-app-permission-set
+  [tapis app-id username]
+  (set (:names (.getAppPermission tapis app-id username))))
+
+(defn- format-app-permissions
+  [tapis app-id]
+  (let [{:keys [owner]} (.getApp tapis app-id)
+        {:keys [users]} (.listAppShares tapis app-id)
+        permissions (map #(hash-map :username %
+                                    :permission-set (get-app-permission-set tapis app-id %))
+                         users)]
+    (apps/format-app-permissions app-id (concat [{:username owner :permission-set #{"MODIFY"}}]
+                                                permissions))))
+
 (defn list-app-permissions
   [tapis app-ids]
-  (map #(apps/format-app-permissions % (.listAppPermissions tapis %)) app-ids))
+  (map #(format-app-permissions tapis %) app-ids))
 
 (defn has-app-permission
   [tapis username app-id required-level]
-  (try+
-   (let [{:keys [write read execute]} (:permission (.getAppPermission tapis app-id username))]
-     (case required-level
-       "own"     write
-       "write"   write
-       "read"    read
-       "execute" execute
-       false))
-   (catch [:status 404] _
-     ;; user has no app permissions
-     false)
-   (catch [:status 501] _
-     ;; app is public
-     (= required-level "read"))))
+  (if (or (= required-level "write") (= required-level "own"))
+    (or (= username (:owner (.getApp tapis app-id)))
+        (contains? (get-app-permission-set tapis app-id username) "MODIFY"))
+    (let [{:keys [public users]} (.listAppShares tapis app-id)]
+      (or public (contains? (set users) username)))))
 
 (defn share-app-with-user
   [tapis username app-id level]
-  (.shareAppWithUser tapis app-id username (apps/format-update-permission level)))
+  (let [share-result (.shareAppWithUsers tapis app-id [username])]
+    (when (or (= level "write") (= level "own"))
+      (.grantAppPermission tapis app-id username ["MODIFY"]))
+    share-result))
+
+(defn unshare-app-with-user
+  [tapis username app-id]
+  (.revokeAppPermission tapis app-id username ["READ" "MODIFY" "EXECUTE"])
+  (.unshareAppWithUsers tapis app-id [username]))
 
 (defn prepare-job-submission
   [tapis submission]
