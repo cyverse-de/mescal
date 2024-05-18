@@ -254,15 +254,15 @@
   (format-app tapis app (partial format-groups-for-rerun tapis job)))
 
 (defn- convert-permissions
-  [perms]
-  (cond (:write perms) "own"
-        (:read perms)  "read"
-        :else          ""))
+  [perms-set]
+  (if (contains? perms-set "MODIFY")
+    "own"
+    "read"))
 
 (defn- format-app-permission
-  [{user :username perms :permission}]
+  [{user :username perm-set :permission-set}]
   {:subject    {:id user :source_id "ldap"}
-   :permission (convert-permissions perms)})
+   :permission (convert-permissions perm-set)})
 
 (defn format-app-permissions
   "Formats a Tapis app permissions response for use in the DE."
@@ -270,11 +270,3 @@
   {:system_id   c/hpc-system-id
    :app_id      app-id
    :permissions (map format-app-permission permissions)})
-
-(defn format-update-permission
-  "Formats a DE permission level for updating in Tapis."
-  [level]
-  (when level
-    (if (= level "read")
-      "read_execute"
-      "all")))
