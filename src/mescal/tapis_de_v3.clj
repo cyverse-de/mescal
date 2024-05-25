@@ -111,8 +111,7 @@
 
 (defn send-job-submission
   [tapis submission]
-  (let [app-info (apps/load-app-info tapis [:appId submission])]
-    (jobs/format-job-submisison-response tapis submission (.submitJob tapis submission))))
+  (jobs/format-job-submisison-response tapis submission (.submitJob tapis submission)))
 
 (defn- format-jobs
   [tapis jobs-enabled? jobs]
