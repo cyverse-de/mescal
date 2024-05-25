@@ -4,38 +4,68 @@
   (:require [clj-time.format :as tf]
             [clojure.string :as string]
             [mescal.tapis-de-v3.app-listings :as app-listings]
-            [mescal.tapis-de-v3.job-params :as params]
             [mescal.tapis-de-v3.constants :as c]
-            [mescal.util :as util]))
+            [mescal.tapis-de-v3.job-params :as params]
+            [mescal.tapis-de-v3.params :as mp]
+            [mescal.util :as util]
+            [me.raynes.fs :as fs]))
 
 (def ^:private timestamp-formatter
   (tf/formatter "yyyy-MM-dd-HH-mm-ss.S"))
 
 (defn- add-param-prefix
-  [prefix param]
+  [prefix param-name]
   (if-not (string/blank? (str prefix))
-    (keyword (str prefix "_" (name param)))
-    param))
+    (keyword (str prefix "_" param-name))
+    (keyword param-name)))
 
-(defn- params-for
-  ([config param-prefix app-section]
-   (params-for config param-prefix app-section identity))
-  ([config param-prefix app-section preprocessing-fn]
-   (let [get-param-val (comp preprocessing-fn config (partial add-param-prefix param-prefix))]
-     (->> (map (comp keyword :id) app-section)
-          (map (juxt identity get-param-val))
-          (into {})
-          (remove-vals nil?)))))
+(defn- format-input-param
+  [get-param-val {:keys [name]}]
+  (let [v (get-param-val name)]
+    {:name name :sourceUrl (when-not (string/blank? v) v)}))
 
-(defn- preprocess-param-value
+(defn- preprocess-file-param-value
   [v]
-  (let [v (if (map? v) (:value v) v)]
-    (when-not (= v "") v)))
+  (if-not (string/blank? v)
+    (fs/base-name v)
+    v))
+
+(defn- preprocess-absolute-path-param-value
+  [path-prefix v]
+  (if-not (string/blank? v)
+    (str (fs/file path-prefix (preprocess-file-param-value v)))
+    v))
+
+(defn- format-param
+  [get-config-val runtime input-name-set output-name-set {:keys [name arg] :as param}]
+  (let [param-type (mp/get-param-type param)
+        v (get-config-val name)
+        v (cond
+            (contains? input-name-set name) (if (= runtime "DOCKER")
+                                              (preprocess-absolute-path-param-value "/TapisInput" v)
+                                              (preprocess-file-param-value v))
+            (contains? output-name-set name) (if (= runtime "DOCKER")
+                                               (preprocess-absolute-path-param-value "/TapisOutput" v)
+                                               (preprocess-file-param-value v))
+            (map? v)                         (:value v)
+            (= param-type "Flag")            (when v arg)
+            :else                            (str v))]
+    {:name name :arg (when-not (string/blank? v) v)}))
 
 (defn- prepare-params
-  [tapis app param-prefix config]
-  {:inputs     (params-for config param-prefix (app :inputs) #(.tapisUrl tapis %))
-   :parameters (params-for config param-prefix (app :parameters) preprocess-param-value)})
+  [tapis {:keys [jobAttributes notes runtime]} param-prefix config]
+  (let [app-args        (-> jobAttributes :parameterSet :appArgs)
+        inputs          (:fileInputs jobAttributes)
+        outputs         (:outputs notes)
+        input-name-set  (set (map :name inputs))
+        output-name-set (set (map :name outputs))
+        get-config-val  (comp config (partial add-param-prefix param-prefix))]
+    {:fileInputs   (->> inputs
+                        (map (partial format-input-param (comp #(.tapisUrl tapis %) get-config-val)))
+                        (filter :sourceUrl))
+     :parameterSet {:appArgs (->> app-args
+                                  (map (partial format-param get-config-val runtime input-name-set output-name-set))
+                                  (filter :arg))}}))
 
 (def ^:private submitted "Submitted")
 (def ^:private running "Running")
@@ -65,9 +95,10 @@
 
 (defn- job-notifications
   [callback-url]
-  [{:url        callback-url
-    :event      "*"
-    :persistent true}])
+  [{:enabled             true
+    :eventCategoryFilter "JOB_NEW_STATUS"
+    :deliveryTargets     [{:deliveryAddress callback-url
+                           :deliveryMethod  "WEBHOOK"}]}])
 
 (defn- build-job-name
   [submission]
@@ -78,11 +109,13 @@
   (->> (assoc (prepare-params tapis app (:paramPrefix submission) (:config submission))
               :name              (build-job-name submission)
               :appId             (:app_id submission)
-              :archive           true
+              :appVersion        (:version app)
               :archiveOnAppError true
-              :archivePath       (.tapisFilePath tapis (:output_dir submission))
-              :archiveSystem     (.storageSystem tapis)
-              :notifications     (job-notifications (:callbackUrl submission)))
+              :archiveSystemDir  (.tapisFilePath tapis (:output_dir submission))
+              :archiveSystemId   (.storageSystem tapis)
+              :subscriptions     (job-notifications (:callbackUrl submission))
+              :notes             {:appName        (app-listings/get-app-name app)
+                                  :appDescription (app-listings/get-app-description app)})
        (remove-vals nil?)))
 
 (defn- app-enabled?

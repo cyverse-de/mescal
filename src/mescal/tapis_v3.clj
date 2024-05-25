@@ -167,7 +167,7 @@
 
 (defn submit-job
   [base-url token-info-fn timeout submission]
-  (tapis-post token-info-fn timeout (curl/url base-url "/v3/jobs/") submission))
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/jobs/submit") submission))
 
 (defn list-jobs
   ([base-url token-info-fn timeout page-len]
@@ -181,7 +181,7 @@
 
 (defn stop-job
   [base-url token-info-fn timeout job-id]
-  (tapis-post token-info-fn timeout (curl/url base-url "/v3/jobs" job-id) {:action "stop"}))
+  (tapis-post token-info-fn timeout (curl/url base-url "/v3/jobs" job-id "cancel") {}))
 
 (defn get-job-history
   [base-url token-info-fn timeout job-id]
