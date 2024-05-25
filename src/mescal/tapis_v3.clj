@@ -171,7 +171,7 @@
 
 (defn list-jobs
   ([base-url token-info-fn timeout page-len]
-   (tapis-get token-info-fn timeout (curl/url base-url "/v3/jobs/") {:page-len page-len}))
+   (tapis-get token-info-fn timeout (curl/url base-url "/v3/jobs/list") {:page-len page-len}))
   ([base-url token-info-fn timeout page-len job-ids]
    (filter (comp (set job-ids) :id) (list-jobs base-url token-info-fn timeout page-len))))
 

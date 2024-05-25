@@ -31,8 +31,7 @@
 
 (def ^:private accepted-timestamp-formats
   ["yyyy-MM-dd'T'HH:mm:ssZZ"
-   "yyyy-MM-dd'T'HH:mm:ss.SSSZZ"
-   "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZZ"])
+   "yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSSZZ"])
 
 (def ^:private formatter
   (apply tf/formatter t/utc accepted-timestamp-formats))

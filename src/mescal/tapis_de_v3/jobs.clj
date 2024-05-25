@@ -80,6 +80,7 @@
    "ARCHIVING"          running
    "STAGING_JOB"        submitted
    "FINISHED"           completed
+   "CANCELLED"          completed
    "KILLED"             failed
    "FAILED"             failed
    "STOPPED"            failed
@@ -87,7 +88,7 @@
    "PAUSED"             running
    "BLOCKED"            running
    "QUEUED"             submitted
-   "SUBMITTING"         submitted
+   "SUBMITTING_JOB"     submitted
    "STAGED"             submitted
    "PROCESSING_INPUTS"  submitted
    "ARCHIVING_FINISHED" completed
@@ -121,27 +122,27 @@
 (defn- app-enabled?
   [statuses jobs-enabled? listing]
   (and jobs-enabled?
-       (:available listing)
-       (statuses (:executionHost listing))))
+       (:enabled listing)
+       (statuses (-> listing :jobAttributes :execSystemId))))
 
 (defn- get-result-folder-id
   [tapis job]
-  (when-let [tapis-path (or (:archivePath job) (get-in job [:_links :archiveData :href]))]
+  (when-let [tapis-path (:archiveSystemDir job)]
     (.irodsFilePath tapis tapis-path)))
 
-(defn format-job*
+(defn- format-job*
   [tapis app-id app-name app-description job]
-  {:id              (str (:id job))
+  {:id              (str (:uuid job))
    :app_id          app-id
    :app_description app-description
    :app_name        app-name
    :description     ""
-   :enddate         (or (util/to-utc (:endTime job)) "")
+   :enddate         (or (util/to-utc (:ended job)) "")
    :system_id       c/hpc-system-id
    :name            (:name job)
    :raw_status      (:status job)
    :resultfolderid  (get-result-folder-id tapis job)
-   :startdate       (or (util/to-utc (:startTime job)) "")
+   :startdate       (or (util/to-utc (:created job)) "")
    :status          (job-status-translations (:status job) "")
    :wiki_url        ""})
 
@@ -169,8 +170,8 @@
   [tapis submission job]
   (format-job* tapis
                (:appId submission)
-               (:appName submission)
-               (:appDescription submission)
+               (-> submission :notes :appName)
+               (-> submission :notes :appDescription)
                job))
 
 (defn translate-job-status
