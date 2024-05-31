@@ -8,10 +8,8 @@
             [mescal.tapis-de-v3.job-params :as params]
             [mescal.tapis-de-v3.params :as mp]
             [mescal.util :as util]
-            [me.raynes.fs :as fs]))
-
-(def ^:private timestamp-formatter
-  (tf/formatter "yyyy-MM-dd-HH-mm-ss.S"))
+            [me.raynes.fs :as fs]
+            [slingshot.slingshot :refer [try+]]))
 
 (defn- add-param-prefix
   [prefix param-name]
@@ -159,12 +157,19 @@
      (assoc (format-job tapis jobs-enabled? app-info-map job)
             :app-disabled (not (app-enabled? statuses jobs-enabled? app-info))))))
 
+(defn- decode-job-history-description
+  [description]
+  (try+
+    (-> description util/decode-json :message)
+    (catch Exception _
+      description)))
+
 (defn format-job-history
   [job-status-updates]
-  (for [update job-status-updates]
-    {:status    (:status update)
-     :message   (:description update)
-     :timestamp (str (util/to-millis (:created update)))}))
+  (for [{:keys [created eventDetail description]} job-status-updates]
+    {:status    eventDetail
+     :message   (decode-job-history-description description)
+     :timestamp (str (util/to-millis created))}))
 
 (defn format-job-submisison-response
   [tapis submission job]
