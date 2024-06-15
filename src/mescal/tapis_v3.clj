@@ -280,4 +280,4 @@
   [base-url token-info-fn timeout storage-system irods-path]
   (when-not (string/blank? irods-path)
     (let [root-dir (get-root-dir base-url token-info-fn timeout storage-system)]
-      (string/replace irods-path (re-pattern (str "\\Q" root-dir)) ""))))
+      (string/replace irods-path (re-pattern (str "^\\Q" root-dir)) ""))))
