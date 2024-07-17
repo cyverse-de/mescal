@@ -1,7 +1,7 @@
-(ns mescal.agave-de-v2.job-params
+(ns mescal.tapis-de-v3.job-params
   (:require [clojure.string :as string]
-            [mescal.agave-de-v2.constants :as c]
-            [mescal.agave-de-v2.params :as mp]
+            [mescal.tapis-de-v3.constants :as c]
+            [mescal.tapis-de-v3.params :as mp]
             [mescal.util :as util]))
 
 (defn- format-param-value
@@ -38,16 +38,16 @@
       param-value)))
 
 (defn- get-default-input-value-fn
-  [agave param]
+  [tapis param]
   (fn []
     (let [default-value (get-default-param-value param)]
       (when-not (string/blank? default-value)
         {:path default-value}))))
 
 (defn- format-input-param-value
-  [agave param-values param]
-  (format-param-value #(.irodsFilePath agave (get-param-value param-values param))
-                      (get-default-input-value-fn agave param)
+  [tapis param-values param]
+  (format-param-value #(.irodsFilePath tapis (get-param-value param-values param))
+                      (get-default-input-value-fn tapis param)
                       (constantly "FileFolderInput")
                       (constantly "Unspecified")
                       (constantly "File")
@@ -63,8 +63,8 @@
                       param))
 
 (defn format-params
-  [agave job app-id app]
-  (let [format-input (partial format-input-param-value agave (:inputs job))
+  [tapis job app-id app]
+  (let [format-input (partial format-input-param-value tapis (:inputs job))
         format-opt   (partial format-opt-param-value (:parameters job))]
     {:system_id  c/hpc-system-id
      :app_id     app-id

@@ -1,4 +1,4 @@
-(ns mescal.agave-de-v2.params
+(ns mescal.tapis-de-v3.params
   (:import [java.util UUID]))
 
 (defn- number-type-for
@@ -31,10 +31,10 @@
 
 (defn get-param-type
   [param]
-  (let [type     (get-in param [:value :type])
-        ontology (get-in param [:semantics :ontology])
+  (let [type     (get-in param [:notes :value :type])
+        ontology (get-in param [:notes :semantics :ontology])
         xsd-type (first (filter (partial re-matches #"xs:.*") ontology))
-        regex    (get-in param [:value :validator])]
+        regex    (get-in param [:notes :value :validator])]
     (cond
       (= type "number")    (number-type-for xsd-type)
       (= type "string")    (string-type-for xsd-type)
@@ -60,4 +60,4 @@
 
 (defn enum-param?
   [param]
-  (= enumeration (get-in param [:value :type])))
+  (= enumeration (get-in param [:notes :value :type])))

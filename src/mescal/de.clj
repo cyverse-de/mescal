@@ -1,9 +1,9 @@
 (ns mescal.de
-  (:require [mescal.agave-de-v2 :as v2]
-            [mescal.core :as core]))
+  (:require [mescal.core :as core]
+            [mescal.tapis-de-v3 :as v3]))
 
-(defprotocol DeAgaveClient
-  "An Agave client with customizations that are specific to the discovery environment."
+(defprotocol DeTapisClient
+  "A Tapis client with customizations that are specific to the discovery environment."
   (hpcAppGroup [_])
   (listApps [_] [_ opts] [_ app-ids opts])
   (emptyAppListing [_])
@@ -17,6 +17,7 @@
   (hasAppPermission [_ username app-id required-level])
   (listAppPermissions [_ app-ids])
   (shareAppWithUser [_ username app-id level])
+  (unshareAppWithUser [_ username app-id])
   (submitJob [_ submission])
   (prepareJobSubmission [_ submission])
   (sendJobSubmission [_ submission])
@@ -31,72 +32,74 @@
   (regenerateJobSubmission [_ job-id])
   (getDefaultOutputName [_ app-id output-id]))
 
-(deftype DeAgaveClientV2 [agave jobs-enabled?]
-  DeAgaveClient
+(deftype DeTapisClientV3 [tapis jobs-enabled?]
+  DeTapisClient
   (hpcAppGroup [_]
-    (v2/hpc-app-group))
+    (v3/hpc-app-group))
   (listApps [_]
-    (v2/list-apps agave jobs-enabled? {}))
+    (v3/list-apps tapis jobs-enabled? {}))
   (listApps [_ opts]
-    (v2/list-apps agave jobs-enabled? opts))
+    (v3/list-apps tapis jobs-enabled? opts))
   (listApps [_ app-ids opts]
-    (v2/list-apps agave jobs-enabled? app-ids opts))
+    (v3/list-apps tapis jobs-enabled? app-ids opts))
   (emptyAppListing [_]
-    (v2/empty-app-listing))
+    (v3/empty-app-listing))
   (listAppsWithOntology [_ term]
-    (v2/list-apps-with-ontology agave jobs-enabled? term))
+    (v3/list-apps-with-ontology tapis jobs-enabled? term))
   (searchApps [this search-term]
     (.searchApps this search-term {}))
   (searchApps [_ search-term opts]
-    (v2/search-apps agave jobs-enabled? search-term opts))
+    (v3/search-apps tapis jobs-enabled? search-term opts))
   (getApp [_ app-id]
-    (v2/get-app agave app-id))
+    (v3/get-app tapis app-id))
   (getAppDetails [_ app-id]
-    (v2/get-app-details agave app-id))
+    (v3/get-app-details tapis app-id))
   (listAppTasks [_ app-id]
-    (v2/list-app-tasks agave app-id))
+    (v3/list-app-tasks tapis app-id))
   (getAppToolListing [_ app-id]
-    (v2/get-app-tool-listing agave app-id))
+    (v3/get-app-tool-listing tapis app-id))
   (getAppInputIds [_ app-id]
-    (v2/get-app-input-ids agave app-id))
+    (v3/get-app-input-ids tapis app-id))
   (hasAppPermission [_ username app-id required-level]
-    (v2/has-app-permission agave username app-id required-level))
+    (v3/has-app-permission tapis username app-id required-level))
   (listAppPermissions [_ app-ids]
-    (v2/list-app-permissions agave app-ids))
+    (v3/list-app-permissions tapis app-ids))
   (shareAppWithUser [_ username app-id level]
-    (v2/share-app-with-user agave username app-id level))
+    (v3/share-app-with-user tapis username app-id level))
+  (unshareAppWithUser [_ username app-id]
+    (v3/unshare-app-with-user tapis username app-id))
   (submitJob [this submission]
     (->> (.prepareJobSubmission this submission)
          (.sendJobSubmission this)))
   (prepareJobSubmission [_ submission]
-    (v2/prepare-job-submission agave submission))
+    (v3/prepare-job-submission tapis submission))
   (sendJobSubmission [_ submission]
-    (v2/send-job-submission agave submission))
+    (v3/send-job-submission tapis submission))
   (listJobs [_]
-    (v2/list-jobs agave jobs-enabled?))
+    (v3/list-jobs tapis jobs-enabled?))
   (listJobs [_ job-ids]
-    (v2/list-jobs agave jobs-enabled? job-ids))
+    (v3/list-jobs tapis jobs-enabled? job-ids))
   (listJob [_ job-id]
-    (v2/list-job agave jobs-enabled? job-id))
+    (v3/list-job tapis jobs-enabled? job-id))
   (listJobIds [_]
-    (mapv :id (.listJobs agave)))
+    (mapv :id (.listJobs tapis)))
   (stopJob [_ job-id]
-    (.stopJob agave job-id))
+    (.stopJob tapis job-id))
   (getJobHistory [_ job-id]
-    (v2/get-job-history agave job-id))
+    (v3/get-job-history tapis job-id))
   (getJobParams [_ job-id]
-    (v2/get-job-params agave job-id))
+    (v3/get-job-params tapis job-id))
   (getAppRerunInfo [_ job-id]
-    (v2/get-app-rerun-info agave job-id))
+    (v3/get-app-rerun-info tapis job-id))
   (translateJobStatus [_ status]
-    (v2/translate-job-status status))
+    (v3/translate-job-status status))
   (regenerateJobSubmission [_ job-id]
-    (v2/regenerate-job-submission agave job-id))
+    (v3/regenerate-job-submission tapis job-id))
   (getDefaultOutputName [_ app-id output-id]
-    (v2/get-default-output-name agave app-id output-id)))
+    (v3/get-default-output-name tapis app-id output-id)))
 
-(defn de-agave-client-v2
-  [base-url storage-system token-info-fn jobs-enabled? & agave-opts]
-  (DeAgaveClientV2.
-   (apply core/agave-client-v2 base-url storage-system token-info-fn agave-opts)
+(defn de-tapis-client-v3
+  [base-url storage-system token-info-fn jobs-enabled? & tapis-opts]
+  (DeTapisClientV3.
+   (apply core/tapis-client-v3 base-url storage-system token-info-fn tapis-opts)
    jobs-enabled?))

@@ -1,4 +1,4 @@
-(defproject org.cyverse/mescal "3.1.12-SNAPSHOT"
+(defproject org.cyverse/mescal "4.0.0-SNAPSHOT"
   :description "A Clojure client library for the Agave API."
   :url "https://github.com/cyverse-de/mescal"
   :license {:name "BSD Standard License"
@@ -11,7 +11,8 @@
                  [clj-time "0.15.2"]
                  [com.cemerick/url "0.1.1" :exclusions [com.cemerick/clojurescript.test]]
                  [medley "1.3.0"]
-                 [org.cyverse/authy "2.8.0"]
+                 [me.raynes/fs "1.4.6"]
+                 [org.cyverse/authy "3.0.0"]
                  [org.cyverse/clojure-commons "3.0.6"]
                  [org.cyverse/service-logging "2.8.2"]
                  [slingshot "0.12.2"]]
