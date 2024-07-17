@@ -62,10 +62,11 @@
 
 (defn- get-default-param-value
   [param]
-  (if (mp/enum-param? param)
-    (get-default-enum-value param)
-    (or (:arg param)
-        (get-in param [:notes :value :default]))))
+  (let [default (get-in param [:notes :value :default])]
+    (case (mp/get-param-type param)
+      "TextSelection" (get-default-enum-value param)
+      "Flag"          default
+      (or (:arg param) default))))
 
 (defn- get-param-args
   [{{value-obj :value} :notes :as param}]
