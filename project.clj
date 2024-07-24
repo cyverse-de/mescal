@@ -5,21 +5,21 @@
             :url "http://www.iplantcollaborative.org/sites/default/files/iPLANT-LICENSE.txt"}
   :deploy-repositories [["releases" :clojars]
                         ["snapshots" :clojars]]
-  :dependencies [[org.clojure/clojure "1.10.2"]
-                 [cheshire "5.10.0"]
-                 [clj-http "3.11.0"]
+  :dependencies [[org.clojure/clojure "1.11.3"]
+                 [cheshire "5.13.0"]
+                 [clj-http "3.13.0"]
                  [clj-time "0.15.2"]
                  [com.cemerick/url "0.1.1" :exclusions [com.cemerick/clojurescript.test]]
-                 [medley "1.3.0"]
-                 [org.cyverse/authy "2.8.0"]
-                 [org.cyverse/clojure-commons "3.0.6"]
-                 [org.cyverse/service-logging "2.8.2"]
+                 [medley "1.4.0"]
+                 [org.cyverse/authy "3.0.1"]
+                 [org.cyverse/clojure-commons "3.0.8"]
+                 [org.cyverse/service-logging "2.8.4"]
                  [slingshot "0.12.2"]]
   :eastwood {:exclude-namespaces [mescal.de :test-paths]
              :linters [:wrong-arity :wrong-ns-form :wrong-pre-post :wrong-tag :misplaced-docstrings]}
   :profiles {:repl {:source-paths ["src" "repl/src"]
                     :resource-paths ["repl/resources"]}}
-  :plugins [[jonase/eastwood "0.3.13"]
+  :plugins [[jonase/eastwood "1.4.3"]
             [lein-ancient "0.7.0"]
-            [lein-cljfmt "0.6.4"]
-            [test2junit "1.2.2"]])
+            [lein-cljfmt "0.9.2"]
+            [test2junit "1.4.4"]])
