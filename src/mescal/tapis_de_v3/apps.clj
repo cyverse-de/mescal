@@ -95,27 +95,34 @@
 (defn- parse-app-args
   "Sorts Tapis app args, returning them in a list of 3 groups: inputs, params, and outputs.
   Input args come from the `jobAttributes.fileInputs` list, and any params with a matching name
-  found inside the `jobAttributes.appArgs.parameterSet` will take the place of the matching
-  `fileInputs` param in the first group of the results.
+  found inside the `jobAttributes.parameterSet.appArgs` or `jobAttributes.parameterSet.envVariables`
+  will take the place of the matching `fileInputs` param in the first group of the results.
   Output args come from the `notes.outputs` field, and just like input params, any params with a
   matching name found inside the `parameterSet` will take the place of the matching output param
   in the last group of the results.
-  The remaining args in the `parameterSet` will be returned in the second group of the results."
+  The remaining `appArgs` and `envVariables` in the `parameterSet` will be returned in the second
+  group of the results, except env vars with `keys` matching app arg `names` are excluded and the
+  rest are formatted as app args."
   [{:keys [jobAttributes notes]}]
-  (let [app-args        (:appArgs (:parameterSet jobAttributes))
+  (let [app-args        (->> jobAttributes :parameterSet :appArgs)
+        env-vars        (->> jobAttributes
+                             :parameterSet
+                             :envVariables
+                             (map #(clojure.set/rename-keys % {:key :name, :value :arg})))
         inputs          (:fileInputs jobAttributes)
         outputs         (:outputs notes)
         input-names     (map :name inputs)
         input-name-set  (set input-names)
         arg-names       (map :name app-args)
         arg-names-set   (set arg-names)
+        env-names       (remove #(contains? arg-names-set %) (map :name env-vars))
         output-names    (filter #(contains? arg-names-set %) (map :name outputs))
         output-name-set (set output-names)
-        all-args        (group-by :name (concat app-args inputs outputs))
+        all-args        (group-by :name (concat app-args env-vars inputs outputs))
         get-first-arg   (comp first #(get all-args %))
         filtered-params (map get-first-arg
                              (remove #(or (get input-name-set %) (get output-name-set %))
-                                     arg-names))]
+                                     (concat arg-names env-names)))]
     [(map get-first-arg input-names)
      filtered-params
      (map get-first-arg output-names)]))

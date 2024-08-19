@@ -53,6 +53,7 @@
 (defn- prepare-params
   [tapis {:keys [jobAttributes notes runtime]} param-prefix config]
   (let [app-args        (-> jobAttributes :parameterSet :appArgs)
+        env-vars        (-> jobAttributes :parameterSet :envVariables)
         inputs          (:fileInputs jobAttributes)
         outputs         (:outputs notes)
         input-name-set  (set (map :name inputs))
@@ -61,9 +62,14 @@
     {:fileInputs   (->> inputs
                         (map (partial format-input-param (comp #(.tapisUrl tapis %) get-config-val)))
                         (filter :sourceUrl))
-     :parameterSet {:appArgs (->> app-args
-                                  (map (partial format-param get-config-val runtime input-name-set output-name-set))
-                                  (filter :arg))}}))
+     :parameterSet {:appArgs      (->> app-args
+                                       (map (partial format-param get-config-val runtime input-name-set output-name-set))
+                                       (filter :arg))
+                    :envVariables (->> env-vars
+                                       (map #(clojure.set/rename-keys % {:key :name, :value :arg}))
+                                       (map (partial format-param get-config-val runtime input-name-set output-name-set))
+                                       (map #(clojure.set/rename-keys % {:name :key, :arg :value}))
+                                       (filter :value))}}))
 
 (def ^:private submitted "Submitted")
 (def ^:private running "Running")
