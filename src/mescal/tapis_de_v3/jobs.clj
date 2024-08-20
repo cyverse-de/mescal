@@ -1,8 +1,7 @@
 (ns mescal.tapis-de-v3.jobs
   (:use [clojure.java.io :only [file]]
         [medley.core :only [remove-vals]])
-  (:require [clj-time.format :as tf]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [mescal.tapis-de-v3.app-listings :as app-listings]
             [mescal.tapis-de-v3.constants :as c]
             [mescal.tapis-de-v3.job-params :as params]
@@ -35,20 +34,40 @@
     v))
 
 (defn- format-param
-  [get-config-val runtime input-name-set output-name-set {:keys [name arg] :as param}]
+  [get-config-val runtime is-input-name? is-output-name? {:keys [name arg] :as param}]
   (let [param-type (mp/get-param-type param)
         v (get-config-val name)
         v (cond
-            (contains? input-name-set name) (if (= runtime "DOCKER")
-                                              (preprocess-absolute-path-param-value "/TapisInput" v)
-                                              (preprocess-file-param-value v))
-            (contains? output-name-set name) (if (= runtime "DOCKER")
-                                               (preprocess-absolute-path-param-value "/TapisOutput" v)
-                                               (preprocess-file-param-value v))
-            (map? v)                         (:value v)
-            (= param-type "Flag")            (when v arg)
-            :else                            (str v))]
+            (is-input-name? name)  (if (= runtime "DOCKER")
+                                     (preprocess-absolute-path-param-value "/TapisInput" v)
+                                     (preprocess-file-param-value v))
+            (is-output-name? name) (if (= runtime "DOCKER")
+                                     (preprocess-absolute-path-param-value "/TapisOutput" v)
+                                     (preprocess-file-param-value v))
+            (map? v)               (:value v)
+            (= param-type "Flag")  (when v arg)
+            :else                  (str v))]
     {:name name :arg (when-not (string/blank? v) v)}))
+
+(defn- format-env-vars
+  [env-vars get-config-val runtime is-input-name? is-output-name?]
+  (->> env-vars
+       (map #(clojure.set/rename-keys % {:key :name, :value :arg}))
+       (map (partial format-param get-config-val runtime is-input-name? is-output-name?))
+       (map #(clojure.set/rename-keys % {:name :key, :arg :value}))
+       (filter :value)))
+
+(defn- format-app-args
+  [app-args get-config-val runtime is-input-name? is-output-name?]
+  (->> app-args
+       (map (partial format-param get-config-val runtime is-input-name? is-output-name?))
+       (filter :arg)))
+
+(defn- format-inputs
+  [inputs tapis get-config-val]
+  (->> inputs
+       (map (partial format-input-param (comp #(.tapisUrl tapis %) get-config-val)))
+       (filter :sourceUrl)))
 
 (defn- prepare-params
   [tapis {:keys [jobAttributes notes runtime]} param-prefix config]
@@ -58,18 +77,12 @@
         outputs         (:outputs notes)
         input-name-set  (set (map :name inputs))
         output-name-set (set (map :name outputs))
+        is-input-name?  (partial contains? input-name-set)
+        is-output-name? (partial contains? output-name-set)
         get-config-val  (comp config (partial add-param-prefix param-prefix))]
-    {:fileInputs   (->> inputs
-                        (map (partial format-input-param (comp #(.tapisUrl tapis %) get-config-val)))
-                        (filter :sourceUrl))
-     :parameterSet {:appArgs      (->> app-args
-                                       (map (partial format-param get-config-val runtime input-name-set output-name-set))
-                                       (filter :arg))
-                    :envVariables (->> env-vars
-                                       (map #(clojure.set/rename-keys % {:key :name, :value :arg}))
-                                       (map (partial format-param get-config-val runtime input-name-set output-name-set))
-                                       (map #(clojure.set/rename-keys % {:name :key, :arg :value}))
-                                       (filter :value))}}))
+    {:fileInputs   (format-inputs inputs tapis get-config-val)
+     :parameterSet {:appArgs      (format-app-args app-args get-config-val runtime is-input-name? is-output-name?)
+                    :envVariables (format-env-vars env-vars get-config-val runtime is-input-name? is-output-name?)}}))
 
 (def ^:private submitted "Submitted")
 (def ^:private running "Running")
