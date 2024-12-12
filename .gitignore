@@ -17,3 +17,4 @@ test2junit
 .clj-kondo
 .eastwood
 .lsp
+*.iml

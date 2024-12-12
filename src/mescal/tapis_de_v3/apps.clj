@@ -1,9 +1,19 @@
-(ns mescal.agave-de-v2.apps
+(ns mescal.tapis-de-v3.apps
   (:use [medley.core :only [remove-vals]]
-        [mescal.agave-de-v2.app-listings :only [get-app-name get-app-description]])
-  (:require [mescal.agave-de-v2.constants :as c]
-            [mescal.agave-de-v2.params :as mp]
+        [mescal.tapis-de-v3.app-listings :only [get-app-name get-app-description]])
+  (:require [mescal.tapis-de-v3.constants :as c]
+            [mescal.tapis-de-v3.params :as mp]
             [mescal.util :as util]))
+
+(def param-input-mode
+  "REQUIRED: Must be provided in a job request.
+  FIXED: Defined in the app and not overridable in a job request.
+  INCLUDE_ON_DEMAND (default): Included if referenced in a job request.
+  INCLUDE_BY_DEFAULT: Included unless include=false in a job request."
+  {:required           "REQUIRED"
+   :fixed              "FIXED"
+   :include-on-demand  "INCLUDE_ON_DEMAND"
+   :include-by-default "INCLUDE_BY_DEFAULT"})
 
 (defn- get-boolean
   [value default]
@@ -20,22 +30,21 @@
      :label       name
      :parameters  params}))
 
-(defn- format-input-validator
-  [input]
-  {:required (get-boolean (get-in input [:value :required]) false)})
-
 (defn- format-param
   [get-type get-value get-args param]
   (remove-vals nil?
-               {:description  (get-in param [:details :description])
+               {:description  (:description param)
                 :arguments    (get-args param)
                 :defaultValue (get-value param)
-                :id           (:id param)
-                :isVisible    (get-boolean (get-in param [:value :visible]) false)
-                :label        (get-in param [:details :label])
-                :name         (:id param)
+                :id           (:name param)
+                :isVisible    (and (not= (:inputMode param) (:fixed param-input-mode))
+                                   (get-boolean (get-in param [:notes :value :visible]) true))
+                :label        (or (get-in param [:notes :details :label])
+                                  (:name param))
+                :name         (:name param)
                 :order        0
-                :required     (get-boolean (get-in param [:value :required]) false)
+                :required     (or (= (:inputMode param) (:required param-input-mode))
+                                  (get-boolean (get-in param [:notes :value :required]) false))
                 :type         (get-type param)
                 :validators   []}))
 
@@ -45,7 +54,7 @@
     (format-param get-type get-value get-args param)))
 
 (defn- get-default-enum-value
-  [{value-obj :value :as param}]
+  [{{value-obj :value} :notes}]
   (let [enum-values (util/get-enum-values value-obj)
         default     (:default value-obj)]
     (when-let [default-elem (mp/find-enum-element default enum-values)]
@@ -53,12 +62,14 @@
 
 (defn- get-default-param-value
   [param]
-  (if (mp/enum-param? param)
-    (get-default-enum-value param)
-    (get-in param [:value :default])))
+  (let [default (get-in param [:notes :value :default])]
+    (case (mp/get-param-type param)
+      "TextSelection" (get-default-enum-value param)
+      "Flag"          default
+      (or (:arg param) default))))
 
 (defn- get-param-args
-  [{value-obj :value :as param}]
+  [{{value-obj :value} :notes :as param}]
   (let [enum-values (util/get-enum-values value-obj)
         default     (:default value-obj)]
     (if (mp/enum-param? param)
@@ -79,28 +90,63 @@
 
 (defn- format-params
   [formatter-fn params]
-  (map formatter-fn (sort-by #(get-in % [:value :order] 0) params)))
+  (map formatter-fn (sort-by #(get-in % [:notes :value :order] 0) params)))
+
+(defn- parse-app-args
+  "Sorts Tapis app args, returning them in a list of 3 groups: inputs, params, and outputs.
+  Input args come from the `jobAttributes.fileInputs` list, and any params with a matching name
+  found inside the `jobAttributes.parameterSet.appArgs` or `jobAttributes.parameterSet.envVariables`
+  will take the place of the matching `fileInputs` param in the first group of the results.
+  Output args come from the `notes.outputs` field, and just like input params, any params with a
+  matching name found inside the `parameterSet` will take the place of the matching output param
+  in the last group of the results.
+  The remaining `appArgs` and `envVariables` in the `parameterSet` will be returned in the second
+  group of the results, except env vars with `keys` matching app arg `names` are excluded and the
+  rest are formatted as app args."
+  [{:keys [jobAttributes notes]}]
+  (let [app-args        (->> jobAttributes :parameterSet :appArgs)
+        env-vars        (->> jobAttributes
+                             :parameterSet
+                             :envVariables
+                             (map #(clojure.set/rename-keys % {:key :name, :value :arg})))
+        inputs          (:fileInputs jobAttributes)
+        outputs         (:outputs notes)
+        input-names     (map :name inputs)
+        input-name-set  (set input-names)
+        arg-names       (map :name app-args)
+        arg-names-set   (set arg-names)
+        env-names       (remove #(contains? arg-names-set %) (map :name env-vars))
+        output-names    (filter #(contains? arg-names-set %) (map :name outputs))
+        output-name-set (set output-names)
+        all-args        (group-by :name (concat app-args env-vars inputs outputs))
+        get-first-arg   (comp first #(get all-args %))
+        filtered-params (map get-first-arg
+                             (remove #(or (get input-name-set %) (get output-name-set %))
+                                     (concat arg-names env-names)))]
+    [(map get-first-arg input-names)
+     filtered-params
+     (map get-first-arg output-names)]))
 
 (defn format-groups
   [app]
-  (remove nil?
-          [(format-group "Inputs" (format-params (input-param-formatter) (:inputs app)))
-           (format-group "Parameters" (format-params (opt-param-formatter) (:parameters app)))
-           (format-group "Outputs" (format-params (output-param-formatter) (:outputs app)))]))
+  (let [[inputs params outputs] (parse-app-args app)]
+    (remove nil?
+            [(format-group "Inputs" (format-params (input-param-formatter) inputs))
+             (format-group "Parameters" (format-params (opt-param-formatter) params))
+             (format-group "Outputs" (format-params (output-param-formatter) outputs))])))
 
 (defn- system-disabled?
-  [agave system-name]
-  (let [{available? :available status :status} (.getSystemInfo agave system-name)]
-    (or (not available?) (not= "UP" status))))
+  [tapis system-name]
+  (not (:enabled (.getSystemInfo tapis system-name))))
 
 (defn format-app
-  ([agave app group-format-fn]
-   (let [system-name (:executionSystem app)
+  ([tapis app group-format-fn]
+   (let [system-name (:execSystemId (:jobAttributes app))
          app-label   (get-app-name app)
-         mod-time    (util/to-utc (:lastModified app))]
+         mod-time    (util/to-utc (:updated app))]
      {:groups           (group-format-fn app)
       :deleted          false
-      :disabled         (system-disabled? agave system-name)
+      :disabled         (system-disabled? tapis system-name)
       :label            app-label
       :id               (:id app)
       :name             app-label
@@ -110,29 +156,29 @@
       :app_type         c/hpc-app-type
       :system_id        c/hpc-system-id
       :limitChecks      c/limit-checks}))
-  ([agave app]
-   (format-app agave app format-groups)))
+  ([tapis app]
+   (format-app tapis app format-groups)))
 
 (defn load-app-info
-  [agave app-ids]
-  (->> (.listApps agave)
+  [tapis app-ids]
+  (->> (.listApps tapis)
        (filter (comp (set app-ids) :id))
        (map (juxt :id identity))
        (into {})))
 
 (defn format-tool-for-app
-  [{path :deploymentPath :as app}]
+  [{:keys [id version containerImage jobType] :as app}]
   {:attribution ""
    :description (get-app-description app)
-   :id          (:id app)
-   :location    path
-   :name        (:id app)
-   :type        (:executionType app)
-   :version     (:version app)})
+   :id          id
+   :location    containerImage
+   :name        id
+   :type        jobType
+   :version     version})
 
 (defn format-app-details
-  [agave app]
-  (let [mod-time (util/to-utc (:lastModified app))]
+  [tapis app]
+  (let [mod-time (util/to-utc (:updated app))]
     {:integrator_name      c/unknown-value
      :integrator_email     c/unknown-value
      :integration_date     mod-time
@@ -142,7 +188,7 @@
      :references           []
      :description          (get-app-description app)
      :deleted              false
-     :disabled             (system-disabled? agave (:executionSystem app))
+     :disabled             (system-disabled? tapis (:execSystemId (:jobAttributes app)))
      :tools                [(format-tool-for-app app)]
      :categories           [c/hpc-group-overview]
      :app_type             c/hpc-app-type
@@ -156,7 +202,7 @@
      :step_count           1
      :suggested_categories []
      :system_id            c/hpc-system-id
-     :wiki_url             (:helpURI app)
+     :wiki_url             (:helpURI (:notes app))
      :owner                (:owner app)}))
 
 (defn- add-file-info
@@ -200,42 +246,35 @@
           (get-default-param-value p)))))
 
 (defn- format-groups-for-rerun
-  [agave job app]
-  (let [input-getter (comp #(.irodsFilePath agave %) (app-rerun-value-getter job :inputs))
+  [tapis job app]
+  (let [[inputs parameters outputs] (parse-app-args app)
+        input-getter (comp #(.irodsFilePath tapis %) (app-rerun-value-getter job :inputs))
         format-input (input-param-formatter :get-default input-getter)
         opt-getter   (app-rerun-value-getter job :parameters)
         format-opt   (opt-param-formatter :get-default opt-getter)]
     (remove nil?
-            [(format-group "Inputs" (map format-input (:inputs app)))
-             (format-group "Parameters" (map format-opt (:parameters app)))
-             (format-group "Outputs" (map (output-param-formatter) (:outputs app)))])))
+            [(format-group "Inputs" (map format-input inputs))
+             (format-group "Parameters" (map format-opt parameters))
+             (format-group "Outputs" (map (output-param-formatter) outputs))])))
 
 (defn format-app-rerun-info
-  [agave app job]
-  (format-app agave app (partial format-groups-for-rerun agave job)))
+  [tapis app job]
+  (format-app tapis app (partial format-groups-for-rerun tapis job)))
 
 (defn- convert-permissions
-  [perms]
-  (cond (:write perms) "own"
-        (:read perms)  "read"
-        :else          ""))
+  [perms-set]
+  (if (contains? perms-set "MODIFY")
+    "own"
+    "read"))
 
 (defn- format-app-permission
-  [{user :username perms :permission}]
+  [{user :username perm-set :permission-set}]
   {:subject    {:id user :source_id "ldap"}
-   :permission (convert-permissions perms)})
+   :permission (convert-permissions perm-set)})
 
 (defn format-app-permissions
-  "Formats an Agave app permissions response for use in the DE."
+  "Formats a Tapis app permissions response for use in the DE."
   [app-id permissions]
   {:system_id   c/hpc-system-id
    :app_id      app-id
    :permissions (map format-app-permission permissions)})
-
-(defn format-update-permission
-  "Formats a DE permission level for updating in Agave."
-  [level]
-  (when level
-    (if (= level "read")
-      "read_execute"
-      "all")))
