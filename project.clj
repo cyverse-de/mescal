@@ -1,4 +1,4 @@
-(defproject org.cyverse/mescal "4.1.0"
+(defproject org.cyverse/mescal "4.1.1-SNAPSHOT"
   :description "A Clojure client library for the Tapis API."
   :url "https://github.com/cyverse-de/mescal"
   :license {:name "BSD Standard License"
