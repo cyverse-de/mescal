@@ -1,8 +1,8 @@
-(defproject org.cyverse/mescal "4.0.1-SNAPSHOT"
-  :description "A Clojure client library for the Agave API."
+(defproject org.cyverse/mescal "4.1.0-SNAPSHOT"
+  :description "A Clojure client library for the Tapis API."
   :url "https://github.com/cyverse-de/mescal"
   :license {:name "BSD Standard License"
-            :url "http://www.iplantcollaborative.org/sites/default/files/iPLANT-LICENSE.txt"}
+            :url "https://cyverse.org/license"}
   :deploy-repositories [["releases" :clojars]
                         ["snapshots" :clojars]]
   :dependencies [[org.clojure/clojure "1.11.3"]
